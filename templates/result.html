@@ -1,20 +1,115 @@
-from flask import Flask, render_template, request
-from datetime import datetime
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>بطاقة توثيق</title>
 
-app = Flask(__name__)
+<style>
+body {
+    font-family: Tahoma;
+    background: white;
+}
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        return render_template(
-            'result.html',
-            teacher=request.form['teacher'],
-            subject=request.form['subject'],
-            school=request.form['school'],
-            principal=request.form['principal'],
-            program=request.form['program'],
-            description=request.form['description'],
-            date=datetime.now().strftime('%Y/%m/%d')
-        )
+.page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: auto;
+    border: 2px solid #0b6b3a;
+    padding: 15mm;
+    box-sizing: border-box;
+}
 
-    return render_template('index.html')
+.header {
+    background: #0b6b3a;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.table td {
+    border: 1px solid #0b6b3a;
+    padding: 8px;
+}
+
+.section-title {
+    background: #e8f3ec;
+    font-weight: bold;
+    padding: 6px;
+    border: 1px solid #0b6b3a;
+    margin-top: 15px;
+}
+
+.footer {
+    margin-top: 40px;
+    display: flex;
+    justify-content: space-between;
+}
+
+@media print {
+    button { display: none; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+<div class="header">
+بطاقة توثيق منجز (برنامج)
+</div>
+
+<table class="table">
+<tr>
+<td><strong>اسم المعلم</strong></td>
+<td>{{ teacher }}</td>
+<td><strong>التخصص</strong></td>
+<td>{{ subject }}</td>
+</tr>
+
+<tr>
+<td><strong>المدرسة</strong></td>
+<td colspan="3">{{ school }}</td>
+</tr>
+
+<tr>
+<td><strong>قائد المدرسة</strong></td>
+<td>{{ principal }}</td>
+<td><strong>التاريخ</strong></td>
+<td>{{ date }}</td>
+</tr>
+</table>
+
+<div class="section-title">اسم البرنامج / النشاط</div>
+<table class="table">
+<tr>
+<td>{{ program }}</td>
+</tr>
+</table>
+
+<div class="section-title">وصف البرنامج</div>
+<table class="table">
+<tr>
+<td>{{ description }}</td>
+</tr>
+</table>
+
+<div class="footer">
+<div>توقيع قائد المدرسة</div>
+<div>ختم المدرسة</div>
+</div>
+
+<br>
+<button onclick="window.print()">تحميل PDF</button>
+
+</div>
+
+</body>
+</html>
