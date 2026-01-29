@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>منصة بطاقة توثيق منشط</title>
+  <style>
+    body{font-family:system-ui;background:#f6f7fb;margin:0}
+    .wrap{max-width:980px;margin:24px auto;padding:0 14px}
+    .card{background:#fff;border:1px solid #e7e7ee;border-radius:14px;padding:16px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    input,select,button{padding:10px;border-radius:10px;border:1px solid #d7d7df}
+    button{background:#0b5fff;color:#fff;border:none;cursor:pointer}
+    small{color:#666}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h2>رفع صورة الشاهد → إخراج بطاقة توثيق (مثل نموذج الوزارة)</h2>
+      <form class="card" style="box-shadow:none" method="POST" action="/analyze" enctype="multipart/form-data">
+        <div class="row">
+          <input type="file" name="image" accept="image/*" required>
+          <select name="stage">
+            <option value="ثانوي">ثانوي</option>
+            <option value="متوسط">متوسط</option>
+            <option value="ابتدائي">ابتدائي</option>
+          </select>
+          <input name="subject" value="فيزياء" placeholder="المادة">
+          <input name="lesson" placeholder="عنوان الدرس (اختياري)">
+        </div>
+
+        <hr style="border:none;border-top:1px solid #eee;margin:14px 0">
+
+        <div class="row">
+          <input name="teacher" value="علي عبدالله عسيري" placeholder="منفذ البرنامج">
+          <input name="school" value="ثانوية الظهران الحكومية" placeholder="المدرسة">
+          <input name="field" value="صفي / عملي" placeholder="مجال البرنامج">
+          <input name="job" value="معلم" placeholder="الوصف الوظيفي">
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <input name="exec_date" placeholder="تاريخ التنفيذ (مثال: 2025/09/14)">
+          <input name="beneficiaries" value="الطلاب" placeholder="المستفيدون">
+          <input name="count" placeholder="عددهم (مثال: 120)">
+          <button type="submit">إنشاء البطاقة</button>
+        </div>
+
+        <p><small>إذا الصورة ما فيها نص واضح، النظام يعطي صياغة عامة محترمة بدون اختراع تفاصيل.</small></p>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
