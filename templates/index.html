@@ -2,20 +2,19 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>منصة توثيق الشواهد</title>
+    <title>إنشاء بطاقة توثيق</title>
     <style>
         body {
-            font-family: Tahoma, Arial;
-            background: #f5f6f7;
-            padding: 30px;
+            font-family: Tahoma;
+            background: #f2f2f2;
+            padding: 40px;
         }
         .box {
             background: #fff;
-            max-width: 600px;
-            margin: auto;
             padding: 25px;
+            max-width: 500px;
+            margin: auto;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         input, button {
             width: 100%;
@@ -23,7 +22,7 @@
             margin-top: 10px;
         }
         button {
-            background: #1d72b8;
+            background: #0b6b3a;
             color: white;
             border: none;
             cursor: pointer;
@@ -33,19 +32,15 @@
 <body>
 
 <div class="box">
-    <h2>رفع صورة الشاهد</h2>
+    <h3>بيانات المعلم</h3>
 
-    <form method="POST" action="/" enctype="multipart/form-data">
-        <label>اسم المعلم</label>
-        <input type="text" name="teacher" placeholder="مثال: علي عسيري">
+    <form method="POST">
+        <input name="teacher" placeholder="اسم المعلم" required>
+        <input name="subject" placeholder="التخصص" required>
+        <input name="school" placeholder="اسم المدرسة" required>
+        <input name="principal" placeholder="اسم المدير" required>
 
-        <label>التخصص</label>
-        <input type="text" name="subject" placeholder="فيزياء">
-
-        <label>رفع الصورة</label>
-        <input type="file" name="image" required>
-
-        <button type="submit">إنشاء بطاقة الشاهد</button>
+        <button type="submit">إنشاء البطاقة</button>
     </form>
 </div>
 
