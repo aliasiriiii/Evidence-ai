@@ -1,166 +1,107 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>بطاقة توثيق منجز</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>بطاقة توثيق منجز</title>
 
-<style>
-body {
-    font-family: "Tahoma", Arial;
-    background: #eee;
-}
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Arial; background:#f3f3f3; margin: 0; }
+    .page { width: 210mm; min-height: 297mm; background:#fff; margin: 12px auto; padding: 12mm; border: 1px solid #ddd; }
 
-.page {
-    width: 210mm;
-    min-height: 297mm;
-    background: white;
-    margin: auto;
-    padding: 20mm;
-    border: 1px solid #ccc;
-}
+    .headerBar { background:#1f7a4f; color:#fff; padding: 10px 14px; border-radius: 8px; text-align:center; font-weight:700; }
+    .subHeader { text-align:center; margin: 8px 0 10px; color:#333; }
 
-.header {
-    background: #0b6e4f;
-    color: white;
-    padding: 15px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: bold;
-}
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    td, th { border:1px solid #777; padding: 8px; vertical-align:middle; }
+    th { background:#eaf5ef; width: 18%; }
 
-.subheader {
-    text-align: center;
-    margin: 10px 0;
-    font-weight: bold;
-}
+    .sectionTitle { background:#eaf5ef; font-weight:700; }
+    .boxes { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .imgBox { border:1px solid #777; height: 120px; display:flex; align-items:center; justify-content:center; color:#666; }
+    .footerRow { display:flex; justify-content:space-between; margin-top: 18px; font-size:14px; color:#333; }
+    .btns { width:210mm; margin: 0 auto 14px; display:flex; gap:10px; justify-content:center; }
+    .btn { background:#1f7a4f; color:#fff; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; }
+    .btn2 { background:#555; }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
+    .ocr { margin-top: 14px; padding: 10px; border:1px dashed #aaa; border-radius: 10px; color:#333; white-space:pre-wrap; }
 
-td {
-    border: 1px solid #0b6e4f;
-    padding: 8px;
-    font-size: 14px;
-}
-
-.label {
-    background: #e8f3ef;
-    font-weight: bold;
-    width: 25%;
-}
-
-.images {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.image-box {
-    width: 50%;
-    height: 150px;
-    border: 1px solid #0b6e4f;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #888;
-}
-
-.footer {
-    margin-top: 30px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.print-btn {
-    margin-top: 20px;
-    text-align: center;
-}
-
-button {
-    padding: 8px 20px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-@media print {
-    body { background: white; }
-    .print-btn { display: none; }
-}
-</style>
+    @media print {
+      body { background:#fff; }
+      .btns { display:none !important; }
+      .page { margin: 0; border:0; }
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="page">
+  <div class="btns">
+    <button class="btn" onclick="window.print()">تحميل PDF</button>
+    <button class="btn btn2" onclick="location.href='/'">رجوع</button>
+  </div>
 
-<div class="header">
-الإدارة العامة للتعليم بالمنطقة الشرقية<br>
-مكتب التعليم – وزارة التعليم
-</div>
+  <div class="page">
+    <div class="headerBar">الإدارة العامة للتعليم بالمنطقة الشرقية — مكتب التعليم — وزارة التعليم</div>
+    <div class="subHeader">بطاقة توثيق منجز (برنامج)</div>
 
-<div class="subheader">
-بطاقة توثيق منجز (برنامج)
-</div>
+    <table>
+      <tr>
+        <th>اسم المعلم</th>
+        <td>{{ teacher_name }}</td>
+        <th>التخصص</th>
+        <td>{{ subject_name }}</td>
+      </tr>
+      <tr>
+        <th>المدرسة</th>
+        <td>{{ school_name }}</td>
+        <th>قائد المدرسة</th>
+        <td>{{ leader_name }}</td>
+      </tr>
+      <tr>
+        <th>التاريخ</th>
+        <td id="todayCell" colspan="3"></td>
+      </tr>
 
-<table>
-<tr>
-<td class="label">اسم المعلم</td>
-<td>علي عبدالله عسيري</td>
-<td class="label">التخصص</td>
-<td>فيزياء</td>
-</tr>
+      <tr>
+        <th class="sectionTitle">اسم البرنامج / النشاط</th>
+        <td colspan="3">{{ program_name }}</td>
+      </tr>
 
-<tr>
-<td class="label">المدرسة</td>
-<td>ثانوية الظهران الحكومية</td>
-<td class="label">قائد المدرسة</td>
-<td>راشد سعيد القحطاني</td>
-</tr>
+      <tr>
+        <th class="sectionTitle">وصف البرنامج</th>
+        <td colspan="3">{{ program_desc }}</td>
+      </tr>
+    </table>
 
-<tr>
-<td class="label">التاريخ</td>
-<td colspan="3"><span id="date"></span></td>
-</tr>
+    <div class="boxes">
+      <div class="imgBox">صورة (1)</div>
+      <div class="imgBox">صورة (2)</div>
+    </div>
 
-<tr>
-<td class="label">اسم البرنامج / النشاط</td>
-<td colspan="3">التعلم بالمحاكاة وتطبيقات فيزياء</td>
-</tr>
+    <div class="footerRow">
+      <div>توقيع قائد المدرسة</div>
+      <div>ختم المدرسة</div>
+    </div>
 
-<tr>
-<td class="label">وصف البرنامج</td>
-<td colspan="3">
-تم تنفيذ نشاط تعليمي داعم لعملية التعلم باستخدام استراتيجيات تعليمية حديثة.
-</td>
-</tr>
-</table>
+    <div class="ocr">
+      <b>النص المستخرج (OCR):</b>
+      <div>— صورة (1) —</div>
+      <div>{{ extracted_1 }}</div>
+      <hr>
+      <div>— صورة (2) —</div>
+      <div>{{ extracted_2 }}</div>
+    </div>
+  </div>
 
-<div class="images">
-<div class="image-box">صورة (1)</div>
-<div class="image-box">صورة (2)</div>
-</div>
-
-<div class="footer">
-<div>ختم المدرسة</div>
-<div>توقيع قائد المدرسة</div>
-</div>
-
-<div class="print-btn">
-<button onclick="window.print()">تحميل PDF</button>
-</div>
-
-</div>
-
-<script>
-const d = new Date();
-document.getElementById("date").innerText =
-d.getFullYear() + "/" +
-String(d.getMonth()+1).padStart(2,"0") + "/" +
-String(d.getDate()).padStart(2,"0");
-</script>
+  <script>
+    // تاريخ ذكي تلقائي (ميلادي) بصيغة YYYY/MM/DD
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    document.getElementById('todayCell').textContent = `${yyyy}/${mm}/${dd}`;
+  </script>
 
 </body>
 </html>
