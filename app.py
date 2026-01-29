@@ -1,53 +1,24 @@
 from flask import Flask, render_template, request
-import requests
-import os
+from datetime import datetime
 
 app = Flask(__name__)
 
-OCR_API_KEY = os.environ.get("OCR_SPACE_KEY")
-
-@app.route("/", methods=["GET", "POST"])
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    if request.method == "GET":
-        return render_template("index.html")
+    if request.method == 'POST':
+        teacher = request.form.get('teacher', '')
+        subject = request.form.get('subject', '')
+        image = request.files.get('image')
 
-    if "image" not in request.files:
-        return "لم يتم رفع صورة"
+        # مؤقتًا بدون OCR عشان نكسر الخطأ
+        extracted_text = "سيتم استخراج النص لاحقًا"
 
-    image = request.files["image"]
-
-    try:
-        response = requests.post(
-            "https://api.ocr.space/parse/image",
-            files={"file": image},
-            data={
-                "apikey": OCR_API_KEY,
-                "language": "ara"
-            },
-            timeout=15  # ⏱ يمنع التعليق
+        return render_template(
+            'result.html',
+            teacher=teacher,
+            subject=subject,
+            date=datetime.now().strftime('%Y-%m-%d'),
+            text=extracted_text
         )
 
-        result = response.json()
-
-        if result.get("IsErroredOnProcessing"):
-            text = "تعذر قراءة النص من الصورة."
-        else:
-            text = result["ParsedResults"][0]["ParsedText"]
-
-    except requests.exceptions.Timeout:
-        text = "تم رفع الصورة بنجاح، لكن القراءة تأخرت. حاول بصورة أصغر."
-
-    except Exception as e:
-        text = "حدث خطأ أثناء المعالجة."
-
-    return render_template(
-        "result.html",
-        text=text,
-        date=request.form.get("date"),
-        lesson=request.form.get("lesson"),
-        students=request.form.get("students"),
-        count=request.form.get("count")
-    )
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    return render_template('index.html')
