@@ -2,113 +2,21 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>بطاقة توثيق النشاط</title>
-    <style>
-        body {
-            font-family: Tahoma, Arial;
-            background: #f0f2f5;
-        }
-        .page {
-            width: 90%;
-            margin: 30px auto;
-            background: #fff;
-            padding: 25px;
-            border: 2px solid #2f8f2f;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        td {
-            border: 1px solid #2f8f2f;
-            padding: 8px;
-            vertical-align: top;
-        }
-        .label {
-            width: 20%;
-            background: #e9f5e9;
-            font-weight: bold;
-        }
-        .images {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .images img {
-            width: 48%;
-            border: 1px solid #ccc;
-        }
-        .footer {
-            margin-top: 30px;
-            display: flex;
-            justify-content: space-between;
-        }
-    </style>
+    <title>نتيجة الشاهد</title>
 </head>
-<body>
+<body style="font-family: Tahoma; background:#f5f6f7; padding:30px;">
 
-<div class="page">
-    <h2>بطاقة توثيق منجز (برنامج)</h2>
+<div style="background:#fff; padding:20px; max-width:700px; margin:auto;">
+    <h2>بطاقة توثيق الشاهد</h2>
 
-    <table>
-        <tr>
-            <td class="label">اسم البرنامج</td>
-            <td>{{ card.program_name }}</td>
-        </tr>
-        <tr>
-            <td class="label">مجال البرنامج</td>
-            <td>{{ card.field }}</td>
-        </tr>
-        <tr>
-            <td class="label">منفذ البرنامج</td>
-            <td>{{ card.teacher }}</td>
-        </tr>
-        <tr>
-            <td class="label">الوصف الوظيفي</td>
-            <td>{{ card.job }}</td>
-        </tr>
-        <tr>
-            <td class="label">أهداف البرنامج</td>
-            <td>{{ card.goals }}</td>
-        </tr>
-        <tr>
-            <td class="label">وصف البرنامج</td>
-            <td>{{ card.description }}</td>
-        </tr>
-        <tr>
-            <td class="label">تاريخ التنفيذ</td>
-            <td>{{ card.exec_date }}</td>
-        </tr>
-        <tr>
-            <td class="label">المستفيدون</td>
-            <td>{{ card.beneficiaries }} ({{ card.count }})</td>
-        </tr>
-        <tr>
-            <td class="label">المدرسة</td>
-            <td>{{ card.school }}</td>
-        </tr>
-    </table>
+    <p><strong>اسم المعلم:</strong> {{ teacher }}</p>
+    <p><strong>التخصص:</strong> {{ subject }}</p>
+    <p><strong>التاريخ:</strong> {{ date }}</p>
 
-    <div class="images">
-        <img src="{{ image_url }}">
-        <img src="{{ image_url }}">
-    </div>
+    <hr>
 
-    <div class="footer">
-        <div>
-            مدير المدرسة<br>
-            الاسم: ___________________<br>
-            التوقيع:
-        </div>
-        <div>
-            الختم
-        </div>
-    </div>
+    <h4>النص المستخرج من الصورة:</h4>
+    <pre>{{ text }}</pre>
 </div>
 
 </body>
