@@ -2,77 +2,74 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>إخراج بطاقة توثيق (OCR)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>رفع الشاهد → بطاقة توثيق</title>
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Arial; margin: 24px; background:#f6f6f6; }
-    .card { max-width: 980px; margin: 0 auto; background:#fff; padding: 18px; border-radius: 12px; border:1px solid #e7e7e7; }
-    h2 { margin: 0 0 12px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    label { font-size: 14px; color:#333; display:block; margin-bottom:6px; }
-    input, textarea { width: 100%; padding: 10px; border:1px solid #ddd; border-radius: 10px; }
-    textarea { min-height: 90px; }
-    .row { margin: 10px 0; }
-    .btn { background:#1f7a4f; color:#fff; border:0; padding: 10px 14px; border-radius: 10px; cursor:pointer; }
-    .muted { color:#777; font-size: 13px; margin-top: 8px; }
-    @media (max-width: 720px){ .grid{ grid-template-columns:1fr; } }
+    body{font-family:Arial, sans-serif; background:#f6f7f9; margin:0; padding:24px;}
+    .box{max-width:900px;margin:auto;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;}
+    h1{margin:0 0 12px 0;font-size:22px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{font-size:13px;color:#374151}
+    input,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;font-size:14px}
+    textarea{min-height:90px}
+    .row{margin:10px 0}
+    .hint{font-size:12px;color:#6b7280}
+    .btn{background:#0f766e;color:#fff;border:0;padding:10px 14px;border-radius:10px;font-size:14px;cursor:pointer}
+    .btn:hover{opacity:.95}
+    @media (max-width:720px){.grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
-
-  <div class="card">
-    <h2>رفع صور الشاهد → استخراج OCR → إخراج بطاقة توثيق</h2>
+  <div class="box">
+    <h1>رفع صورة الشاهد → إخراج بطاقة توثيق (PDF)</h1>
+    <div class="hint">التاريخ يتعبّى تلقائيًا في صفحة النتيجة. صور الشاهد اختيارية (صورة 1 أو 2).</div>
 
     <form action="/generate" method="POST" enctype="multipart/form-data">
-      <div class="grid">
-        <div class="row">
+      <div class="grid row">
+        <div>
           <label>اسم المعلم</label>
-          <input name="teacher_name" placeholder="مثال: علي عبدالله عسيري" required>
+          <input name="teacher" placeholder="مثال: علي عبدالله عسيري" />
         </div>
-        <div class="row">
-          <label>التخصص / المادة</label>
-          <input name="subject_name" placeholder="مثال: فيزياء" required>
+        <div>
+          <label>التخصص</label>
+          <input name="subject" placeholder="مثال: فيزياء" />
         </div>
+      </div>
 
-        <div class="row">
+      <div class="grid row">
+        <div>
           <label>المدرسة</label>
-          <input name="school_name" placeholder="مثال: ثانوية الظهران الحكومية" required>
+          <input name="school" placeholder="مثال: ثانوية الظهران الحكومية" />
         </div>
-        <div class="row">
+        <div>
           <label>قائد المدرسة</label>
-          <input name="leader_name" placeholder="مثال: راشد سعيد القحطاني" required>
-        </div>
-
-        <div class="row" style="grid-column:1/-1;">
-          <label>اسم البرنامج / النشاط</label>
-          <input name="program_name" placeholder="مثال: التعلم بالمحاكاة وتطبيقات فيزياء" required>
-        </div>
-
-        <div class="row" style="grid-column:1/-1;">
-          <label>وصف البرنامج (اختياري) — إذا تركته فاضي، النظام يعبّيه من OCR تلقائيًا</label>
-          <textarea name="program_desc" placeholder="اكتب وصف مختصر… أو اتركه فاضي"></textarea>
-          <div class="muted">التاريخ ما يحتاج خانة: يتعبّى تلقائي داخل البطاقة.</div>
-        </div>
-
-        <div class="row">
-          <label>صورة (1) للشاهد (اختياري)</label>
-          <input type="file" name="image1" accept="image/*">
-        </div>
-        <div class="row">
-          <label>صورة (2) للشاهد (اختياري)</label>
-          <input type="file" name="image2" accept="image/*">
+          <input name="principal" placeholder="مثال: راشد سعيد القحطاني" />
         </div>
       </div>
 
       <div class="row">
-        <button class="btn" type="submit">إنشاء البطاقة + OCR</button>
+        <label>اسم البرنامج/النشاط</label>
+        <input name="program_name" placeholder="اختياري (لو تركته فاضي بيطلع نشاط/برنامج تعليمي)" />
       </div>
+
+      <div class="row">
+        <label>وصف البرنامج (اختياري)</label>
+        <textarea name="program_desc" placeholder="لو تركته فاضي، النظام بيولّد وصف مختصر من OCR تلقائيًا."></textarea>
+      </div>
+
+      <div class="grid row">
+        <div>
+          <label>صورة الشاهد (1)</label>
+          <input type="file" name="image1" accept="image/*" />
+        </div>
+        <div>
+          <label>صورة الشاهد (2)</label>
+          <input type="file" name="image2" accept="image/*" />
+        </div>
+      </div>
+
+      <button class="btn" type="submit">إنشاء البطاقة</button>
     </form>
-
-    <div class="muted">
-      ملاحظة: لو الصور كبيرة جدًا ممكن يطوّل. الأفضل تكون واضحة ومقصوصة على الجزء المهم.
-    </div>
   </div>
-
 </body>
 </html>
