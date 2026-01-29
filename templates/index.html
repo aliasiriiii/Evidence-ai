@@ -1,47 +1,50 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>إنشاء بطاقة توثيق</title>
-    <style>
-        body {
-            font-family: Tahoma;
-            background: #f2f2f2;
-            padding: 40px;
-        }
-        .box {
-            background: #fff;
-            padding: 25px;
-            max-width: 500px;
-            margin: auto;
-            border-radius: 8px;
-        }
-        input, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-        }
-        button {
-            background: #0b6b3a;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>إنشاء بطاقة توثيق</title>
+<style>
+body {
+    font-family: Tahoma;
+    background: #f2f2f2;
+    padding: 30px;
+}
+.box {
+    background: white;
+    padding: 25px;
+    max-width: 600px;
+    margin: auto;
+    border-radius: 8px;
+}
+input, textarea, button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+}
+button {
+    background: #0b6b3a;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
 <div class="box">
-    <h3>بيانات المعلم</h3>
+<h3>بيانات بطاقة التوثيق</h3>
 
-    <form method="POST">
-        <input name="teacher" placeholder="اسم المعلم" required>
-        <input name="subject" placeholder="التخصص" required>
-        <input name="school" placeholder="اسم المدرسة" required>
-        <input name="principal" placeholder="اسم المدير" required>
+<form method="POST">
+<input name="teacher" placeholder="اسم المعلم" required>
+<input name="subject" placeholder="التخصص" required>
+<input name="school" placeholder="اسم المدرسة" required>
+<input name="principal" placeholder="قائد المدرسة" required>
+<input name="program" placeholder="اسم البرنامج / النشاط" required>
+<textarea name="description" placeholder="وصف مختصر للنشاط" rows="4" required></textarea>
 
-        <button type="submit">إنشاء البطاقة</button>
-    </form>
+<button type="submit">إنشاء البطاقة</button>
+</form>
 </div>
 
 </body>
