@@ -6,19 +6,13 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        teacher = request.form.get('teacher', '')
-        subject = request.form.get('subject', '')
-        image = request.files.get('image')
-
-        # مؤقتًا بدون OCR عشان نكسر الخطأ
-        extracted_text = "سيتم استخراج النص لاحقًا"
-
         return render_template(
             'result.html',
-            teacher=teacher,
-            subject=subject,
-            date=datetime.now().strftime('%Y-%m-%d'),
-            text=extracted_text
+            teacher=request.form['teacher'],
+            subject=request.form['subject'],
+            school=request.form['school'],
+            principal=request.form['principal'],
+            date=datetime.now().strftime('%Y/%m/%d')
         )
 
     return render_template('index.html')
