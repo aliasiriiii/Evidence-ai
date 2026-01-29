@@ -1,84 +1,20 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<title>بطاقة توثيق</title>
+from flask import Flask, render_template, request
+from datetime import datetime
 
-<style>
-body {
-    font-family: Tahoma;
-    margin: 0;
-    background: white;
-}
+app = Flask(__name__)
 
-.card {
-    width: 210mm;
-    min-height: 297mm;
-    padding: 20mm;
-    box-sizing: border-box;
-    border: 2px solid #0b6b3a;
-}
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        return render_template(
+            'result.html',
+            teacher=request.form['teacher'],
+            subject=request.form['subject'],
+            school=request.form['school'],
+            principal=request.form['principal'],
+            program=request.form['program'],
+            description=request.form['description'],
+            date=datetime.now().strftime('%Y/%m/%d')
+        )
 
-.header {
-    background: #0b6b3a;
-    color: white;
-    padding: 10px;
-    text-align: center;
-    font-weight: bold;
-}
-
-.section {
-    margin-top: 15px;
-    border: 1px solid #0b6b3a;
-}
-
-.section div {
-    padding: 8px;
-    border-bottom: 1px solid #0b6b3a;
-}
-
-.footer {
-    margin-top: 40px;
-    display: flex;
-    justify-content: space-between;
-}
-
-@media print {
-    button { display: none; }
-}
-</style>
-</head>
-
-<body>
-
-<div class="card">
-
-    <div class="header">
-        بطاقة توثيق منجز (برنامج)
-    </div>
-
-    <div class="section">
-        <div><strong>اسم المعلم:</strong> {{ teacher }}</div>
-        <div><strong>التخصص:</strong> {{ subject }}</div>
-        <div><strong>المدرسة:</strong> {{ school }}</div>
-        <div><strong>قائد المدرسة:</strong> {{ principal }}</div>
-        <div><strong>التاريخ:</strong> {{ date }}</div>
-    </div>
-
-    <div class="section">
-        <div><strong>وصف مختصر:</strong></div>
-        <div>تم تنفيذ نشاط تعليمي داعم لعملية التعلم داخل الصف.</div>
-    </div>
-
-    <div class="footer">
-        <div>توقيع قائد المدرسة</div>
-        <div>ختم المدرسة</div>
-    </div>
-
-    <br>
-    <button onclick="window.print()">تحميل PDF</button>
-
-</div>
-
-</body>
-</html>
+    return render_template('index.html')
