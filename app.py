@@ -10,6 +10,9 @@ app = Flask(__name__)
 
 OCR_SPACE_KEY = os.getenv("OCR_SPACE_KEY", "").strip()
 
+# ---------------------------
+# OCR: استخراج النص من الصورة
+# ---------------------------
 def ocr_space_extract_text(image_bytes: bytes, filename: str) -> str:
     if not OCR_SPACE_KEY:
         raise RuntimeError("ناقص OCR_SPACE_KEY في Render Environment Variables")
@@ -26,6 +29,7 @@ def ocr_space_extract_text(image_bytes: bytes, filename: str) -> str:
         timeout=60
     )
     j = r.json()
+
     if j.get("IsErroredOnProcessing"):
         msg = j.get("ErrorMessage") or j.get("ErrorDetails") or "OCR فشل"
         raise RuntimeError(str(msg))
@@ -38,20 +42,14 @@ def clean_ocr_text(text: str) -> str:
     if not text:
         return ""
     t = text
-    # إزالة أوقات وأشياء متكررة مثل AM/PM
     t = re.sub(r"\b(AM|PM)\s*\d{1,2}:\d{2}\b", " ", t, flags=re.IGNORECASE)
     t = re.sub(r"\b\d{1,2}:\d{2}\b", " ", t)
-    # إزالة أرقام منفصلة كثيرة
     t = re.sub(r"(?m)^\s*\d+\s*$", "", t)
     t = re.sub(r"[ \t]+", " ", t)
     t = re.sub(r"\n{3,}", "\n\n", t).strip()
     return t
 
 def infer_card_fields(text: str, meta: dict) -> dict:
-    """
-    تعبئة ذكية (بدون GPT) — قالب رسمي.
-    لو النص ضعيف، نعطي صياغة عامة محترمة.
-    """
     subject = meta.get("subject", "فيزياء")
     stage = meta.get("stage", "ثانوي")
     teacher = meta.get("teacher", "علي عبدالله عسيري")
@@ -62,8 +60,8 @@ def infer_card_fields(text: str, meta: dict) -> dict:
     count = meta.get("count", "—")
     exec_date = meta.get("exec_date") or date.today().isoformat()
 
-    # تصنيف بسيط
     low = (text or "").lower()
+
     if any(k in low for k in ["محاكاة", "simulation", "phet", "افتراضي", "مختبر افتراضي"]):
         program_name = "التعلم بالمحاكاة وتطبيق التجارب الافتراضية باستخدام التقنيات الحديثة"
         goals = "التعرف على المختبرات الافتراضية والتقنيات الحديثة."
@@ -77,8 +75,7 @@ def infer_card_fields(text: str, meta: dict) -> dict:
         goals = f"تعزيز فهم مفاهيم {subject} عبر نشاط تطبيقي وتفاعلي."
         desc = "تنفيذ نشاط تعليمي موثق بالصور يرفع التفاعل ويحسن نواتج التعلم."
 
-    # لو عندك عنوان درس
-    lesson = meta.get("lesson", "").strip()
+    lesson = (meta.get("lesson") or "").strip()
     if lesson:
         program_name += f" (درس: {lesson})"
 
@@ -94,49 +91,58 @@ def infer_card_fields(text: str, meta: dict) -> dict:
         "count": count,
         "school": school,
         "stage": stage,
-        "subject": subject
+        "subject": subject,
     }
 
-@app.get("/")
+# ---------------------------------------------------------
+# ✅ صفحة واحدة "/" تستقبل GET + POST (تحل 405 مباشرة)
+# ---------------------------------------------------------
+@app.route("/", methods=["GET", "POST"])
 def home():
-    return render_template("index.html")
+    # GET: عرض صفحة الرفع
+    if request.method == "GET":
+        return render_template("index.html")
 
-@app.post("/analyze")
-def analyze():
-    if "image" not in request.files:
-        return "ارفع صورة", 400
+    # POST: معالجة رفع الصورة + استخراج النص + إخراج بطاقة
+    try:
+        if "image" not in request.files:
+            return "لم يتم رفع صورة", 400
 
-    f = request.files["image"]
-    filename = secure_filename(f.filename or "evidence.jpg")
-    img_bytes = f.read()
+        f = request.files["image"]
+        filename = secure_filename(f.filename or "evidence.jpg")
+        img_bytes = f.read()
 
-    meta = {
-        "stage": request.form.get("stage", "ثانوي"),
-        "subject": request.form.get("subject", "فيزياء"),
-        "lesson": request.form.get("lesson", ""),
-        "teacher": request.form.get("teacher", "علي عبدالله عسيري"),
-        "school": request.form.get("school", "ثانوية الظهران الحكومية"),
-        "field": request.form.get("field", "صفي / عملي"),
-        "job": request.form.get("job", "معلم"),
-        "beneficiaries": request.form.get("beneficiaries", "الطلاب"),
-        "count": request.form.get("count", "—"),
-        "exec_date": request.form.get("exec_date", ""),
-    }
+        meta = {
+            "stage": request.form.get("stage", "ثانوي"),
+            "subject": request.form.get("subject", "فيزياء"),
+            "lesson": request.form.get("lesson", ""),
+            "teacher": request.form.get("teacher", "علي عبدالله عسيري"),
+            "school": request.form.get("school", "ثانوية الظهران الحكومية"),
+            "field": request.form.get("field", "صفي / عملي"),
+            "job": request.form.get("job", "معلم"),
+            "beneficiaries": request.form.get("beneficiaries", "الطلاب"),
+            "count": request.form.get("count", "—"),
+            "exec_date": request.form.get("exec_date", ""),
+        }
 
-    ocr_text = ocr_space_extract_text(img_bytes, filename)
-    cleaned = clean_ocr_text(ocr_text)
-    card = infer_card_fields(cleaned, meta)
+        ocr_text = ocr_space_extract_text(img_bytes, filename)
+        cleaned = clean_ocr_text(ocr_text)
+        card = infer_card_fields(cleaned, meta)
 
-    # لعرض الصورة داخل البطاقة بدون تخزين ملفات: نحولها Base64
-    img_b64 = base64.b64encode(img_bytes).decode("utf-8")
-    data_url = f"data:image/jpeg;base64,{img_b64}"
+        img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+        data_url = f"data:image/jpeg;base64,{img_b64}"
 
-    return render_template(
-        "result.html",
-        card=card,
-        ocr_text=cleaned,
-        image_url=data_url
-    )
+        return render_template(
+            "result.html",
+            card=card,
+            ocr_text=cleaned,
+            image_url=data_url
+        )
+
+    except Exception as e:
+        # رسالة واضحة بدل 500
+        return f"صار خطأ أثناء التحليل: {e}", 500
+
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "5000"))
