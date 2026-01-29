@@ -1,51 +1,78 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>إنشاء بطاقة توثيق</title>
-<style>
-body {
-    font-family: Tahoma;
-    background: #f2f2f2;
-    padding: 30px;
-}
-.box {
-    background: white;
-    padding: 25px;
-    max-width: 600px;
-    margin: auto;
-    border-radius: 8px;
-}
-input, textarea, button {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-}
-button {
-    background: #0b6b3a;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>إخراج بطاقة توثيق (OCR)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Arial; margin: 24px; background:#f6f6f6; }
+    .card { max-width: 980px; margin: 0 auto; background:#fff; padding: 18px; border-radius: 12px; border:1px solid #e7e7e7; }
+    h2 { margin: 0 0 12px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    label { font-size: 14px; color:#333; display:block; margin-bottom:6px; }
+    input, textarea { width: 100%; padding: 10px; border:1px solid #ddd; border-radius: 10px; }
+    textarea { min-height: 90px; }
+    .row { margin: 10px 0; }
+    .btn { background:#1f7a4f; color:#fff; border:0; padding: 10px 14px; border-radius: 10px; cursor:pointer; }
+    .muted { color:#777; font-size: 13px; margin-top: 8px; }
+    @media (max-width: 720px){ .grid{ grid-template-columns:1fr; } }
+  </style>
 </head>
-
 <body>
 
-<div class="box">
-<h3>بيانات بطاقة التوثيق</h3>
+  <div class="card">
+    <h2>رفع صور الشاهد → استخراج OCR → إخراج بطاقة توثيق</h2>
 
-<form method="POST">
-<input name="teacher" placeholder="اسم المعلم" required>
-<input name="subject" placeholder="التخصص" required>
-<input name="school" placeholder="اسم المدرسة" required>
-<input name="principal" placeholder="قائد المدرسة" required>
-<input name="program" placeholder="اسم البرنامج / النشاط" required>
-<textarea name="description" placeholder="وصف مختصر للنشاط" rows="4" required></textarea>
+    <form action="/generate" method="POST" enctype="multipart/form-data">
+      <div class="grid">
+        <div class="row">
+          <label>اسم المعلم</label>
+          <input name="teacher_name" placeholder="مثال: علي عبدالله عسيري" required>
+        </div>
+        <div class="row">
+          <label>التخصص / المادة</label>
+          <input name="subject_name" placeholder="مثال: فيزياء" required>
+        </div>
 
-<button type="submit">إنشاء البطاقة</button>
-</form>
-</div>
+        <div class="row">
+          <label>المدرسة</label>
+          <input name="school_name" placeholder="مثال: ثانوية الظهران الحكومية" required>
+        </div>
+        <div class="row">
+          <label>قائد المدرسة</label>
+          <input name="leader_name" placeholder="مثال: راشد سعيد القحطاني" required>
+        </div>
+
+        <div class="row" style="grid-column:1/-1;">
+          <label>اسم البرنامج / النشاط</label>
+          <input name="program_name" placeholder="مثال: التعلم بالمحاكاة وتطبيقات فيزياء" required>
+        </div>
+
+        <div class="row" style="grid-column:1/-1;">
+          <label>وصف البرنامج (اختياري) — إذا تركته فاضي، النظام يعبّيه من OCR تلقائيًا</label>
+          <textarea name="program_desc" placeholder="اكتب وصف مختصر… أو اتركه فاضي"></textarea>
+          <div class="muted">التاريخ ما يحتاج خانة: يتعبّى تلقائي داخل البطاقة.</div>
+        </div>
+
+        <div class="row">
+          <label>صورة (1) للشاهد (اختياري)</label>
+          <input type="file" name="image1" accept="image/*">
+        </div>
+        <div class="row">
+          <label>صورة (2) للشاهد (اختياري)</label>
+          <input type="file" name="image2" accept="image/*">
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn" type="submit">إنشاء البطاقة + OCR</button>
+      </div>
+    </form>
+
+    <div class="muted">
+      ملاحظة: لو الصور كبيرة جدًا ممكن يطوّل. الأفضل تكون واضحة ومقصوصة على الجزء المهم.
+    </div>
+  </div>
 
 </body>
 </html>
