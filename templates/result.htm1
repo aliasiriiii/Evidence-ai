@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>بطاقة توثيق منشط</title>
+  <style>
+    body{font-family:system-ui;background:#f6f7fb;margin:0}
+    .wrap{max-width:980px;margin:24px auto;padding:0 14px}
+    .paper{background:#fff;border:1px solid #dfe6df;border-radius:10px;overflow:hidden}
+    .hdr{background:#0b5e52;color:#fff;padding:14px 18px}
+    .hdr small{opacity:.9}
+    .title{background:#0f6b5d;color:#fff;text-align:center;padding:10px 12px;font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    td,th{border:1px solid #2f7a6f;padding:10px;vertical-align:top}
+    th{background:#eaf6f3;width:160px;text-align:right}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px}
+    .imgbox{border:1px solid #2f7a6f;min-height:220px;display:flex;align-items:center;justify-content:center}
+    .imgbox img{max-width:100%;max-height:320px;display:block}
+    .footer{padding:14px 18px}
+    .no-print{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+    button{padding:10px 14px;border-radius:10px;border:none;background:#0b5fff;color:#fff;cursor:pointer}
+    .btn2{background:#222}
+    @media print{
+      body{background:#fff}
+      .no-print{display:none!important}
+      .wrap{max-width:100%;margin:0;padding:0}
+      .paper{border:none;border-radius:0}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="no-print">
+      <button onclick="window.print()">طباعة البطاقة</button>
+      <button class="btn2" onclick="location.href='/'">رجوع</button>
+    </div>
+
+    <div class="paper">
+      <div class="hdr">
+        <div><strong>وزارة التعليم</strong> — الإدارة العامة للتعليم</div>
+        <small>{{ card.school }} • {{ card.stage }} • {{ card.subject }}</small>
+      </div>
+
+      <div class="title">بطاقة توثيق منشط ( برنامج )</div>
+
+      <table>
+        <tr>
+          <th>اسم البرنامج</th>
+          <td colspan="3">{{ card.program_name }}</td>
+        </tr>
+        <tr>
+          <th>مجال البرنامج</th>
+          <td>{{ card.field }}</td>
+          <th>الوصف الوظيفي</th>
+          <td>{{ card.job }}</td>
+        </tr>
+        <tr>
+          <th>منفذ البرنامج</th>
+          <td colspan="3">{{ card.teacher }}</td>
+        </tr>
+        <tr>
+          <th>أهداف البرنامج</th>
+          <td colspan="3">{{ card.goals }}</td>
+        </tr>
+        <tr>
+          <th>وصف البرنامج</th>
+          <td colspan="3">{{ card.description }}</td>
+        </tr>
+        <tr>
+          <th>تاريخ التنفيذ</th>
+          <td>{{ card.exec_date }}</td>
+          <th>المستفيدون / عددهم</th>
+          <td>{{ card.beneficiaries }} — {{ card.count }}</td>
+        </tr>
+      </table>
+
+      <div class="grid2">
+        <div class="imgbox">
+          <img src="{{ image_url }}" alt="صورة الشاهد 1">
+        </div>
+        <div class="imgbox">
+          <img src="{{ image_url }}" alt="صورة الشاهد 2">
+        </div>
+      </div>
+
+      <div class="footer">
+        <small><strong>النص المستخرج (للاستدلال فقط):</strong></small>
+        <div style="white-space:pre-wrap;border:1px dashed #cfe4df;padding:10px;border-radius:8px;margin-top:8px">
+          {{ ocr_text if ocr_text else "—" }}
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
