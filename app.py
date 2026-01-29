@@ -1,102 +1,189 @@
 import os
+import io
+import time
 import requests
+from PIL import Image
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
-OCR_API_KEY = os.getenv("OCR_SPACE_KEY", "").strip()
+OCR_API_KEY = os.environ.get("OCR_SPACE_KEY", "").strip()
 
-def ocr_space_image(file_storage):
+# -----------------------------
+# Helpers
+# -----------------------------
+def compress_image(file_storage, max_w=1600, quality=75):
     """
-    Sends an image to OCR.space and returns extracted text.
+    يقلل حجم الصورة قبل إرسالها لـ OCR.space عشان السرعة + يقلل تعليق الشبكة
+    يرجع (filename, bytes, mimetype)
+    """
+    filename = file_storage.filename or "upload.jpg"
+    img = Image.open(file_storage.stream)
+
+    # تحويل إلى RGB لو PNG فيها ألفا
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+
+    w, h = img.size
+    if w > max_w:
+        new_h = int(h * (max_w / w))
+        img = img.resize((max_w, new_h))
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=quality, optimize=True)
+    buf.seek(0)
+    return filename, buf.getvalue(), "image/jpeg"
+
+
+def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=30):
+    """
+    OCR.space لا يقبل ara كلغة (يطلع E201)
+    الحل الأفضل: لا ترسل language أصلاً (يتعرف على العربي تلقائياً غالباً)
     """
     if not OCR_API_KEY:
-        return "خطأ: لم يتم ضبط OCR_SPACE_KEY في Render."
+        return "", "مفتاح OCR_SPACE_KEY غير موجود في Render Environment Variables"
 
-    # OCR.space expects multipart 'file'
     url = "https://api.ocr.space/parse/image"
-    payload = {
+    data = {
         "apikey": OCR_API_KEY,
-        "language": "ara",          # Arabic
-        "isOverlayRequired": False,
-        "OCREngine": 2,             # غالباً أدق
-        "scale": True,
+        "isOverlayRequired": "false",
+        "OCREngine": "2",
+        "scale": "true",
+        # لا نرسل language نهائياً لتجنب E201
     }
-
     files = {
-        "file": (file_storage.filename, file_storage.stream, file_storage.mimetype)
+        "filename": (filename, image_bytes, "image/jpeg")
     }
 
-    try:
-        r = requests.post(url, data=payload, files=files, timeout=60)
-        r.raise_for_status()
-        data = r.json()
+    last_err = None
+    for attempt in range(retries + 1):
+        try:
+            r = requests.post(url, data=data, files=files, timeout=timeout)
+            r.raise_for_status()
+            j = r.json()
 
-        if data.get("IsErroredOnProcessing"):
-            err = data.get("ErrorMessage") or data.get("ErrorDetails") or "خطأ غير معروف من OCR.space"
-            return f"فشل OCR: {err}"
+            if j.get("IsErroredOnProcessing"):
+                msg = ""
+                errs = j.get("ErrorMessage")
+                if isinstance(errs, list):
+                    msg = " | ".join(errs)
+                else:
+                    msg = str(errs) if errs else "خطأ غير معروف من OCR.space"
+                return "", f"فشل OCR: {msg}"
 
-        parsed = data.get("ParsedResults", [])
-        if not parsed:
-            return "لم يتم استخراج نص (ParsedResults فاضي)."
+            parsed = j.get("ParsedResults", [])
+            if not parsed:
+                return "", "OCR رجّع نتيجة فاضية"
 
-        text = parsed[0].get("ParsedText", "").strip()
-        return text if text else "تمت المعالجة لكن النص المستخرج فارغ."
-    except Exception as e:
-        return f"خطأ اتصال OCR: {str(e)}"
+            text = parsed[0].get("ParsedText", "") or ""
+            text = text.strip()
+            return text, ""
+
+        except requests.exceptions.Timeout:
+            last_err = "انتهت مهلة الاتصال مع OCR.space (Timeout)"
+        except Exception as e:
+            last_err = f"خطأ اتصال/تحليل OCR: {e}"
+
+        time.sleep(0.8 * (attempt + 1))
+
+    return "", last_err or "فشل OCR لسبب غير معروف"
 
 
-@app.get("/")
+def clean_text(t: str) -> str:
+    if not t:
+        return ""
+    # تنظيف بسيط: سطور فاضية كثيرة
+    lines = [ln.strip() for ln in t.splitlines()]
+    lines = [ln for ln in lines if ln]
+    return "\n".join(lines)
+
+
+def auto_description_from_ocr(ocr_text: str) -> str:
+    """
+    يطلع وصف رسمي مختصر من النص المستخرج (بدون GPT)
+    """
+    t = clean_text(ocr_text)
+    if not t:
+        return ""
+    # خذ أول 2-3 أسطر كفكرة
+    lines = t.splitlines()[:3]
+    snippet = " ".join(lines)
+    return f"تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف. (ملخص من الشاهد: {snippet})"
+
+
+# -----------------------------
+# Routes
+# -----------------------------
+@app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
 
-@app.post("/generate")
+@app.route("/generate", methods=["POST"])
 def generate():
-    # بيانات البطاقة
-    teacher_name = request.form.get("teacher_name", "").strip()
-    subject_name = request.form.get("subject_name", "").strip()
-    school_name  = request.form.get("school_name", "").strip()
-    leader_name  = request.form.get("leader_name", "").strip()
-    program_name = request.form.get("program_name", "").strip()
+    # بيانات النموذج
+    teacher = (request.form.get("teacher") or "").strip()
+    subject = (request.form.get("subject") or "").strip()
+    school = (request.form.get("school") or "").strip()
+    principal = (request.form.get("principal") or "").strip()
+    program_name = (request.form.get("program_name") or "").strip()
+    program_desc = (request.form.get("program_desc") or "").strip()
 
-    # صور (اختياري)
     img1 = request.files.get("image1")
     img2 = request.files.get("image2")
 
-    extracted_1 = ""
-    extracted_2 = ""
+    img1_url = None
+    img2_url = None
 
-    # شغّل OCR فقط إذا فيه ملف فعلاً
+    # نخزن الصور كـ base64 داخل الصفحة (بدون ملفات على السيرفر) عشان يكون سهل على Render
+    import base64
+
+    ocr1_text, ocr1_err = "", ""
+    ocr2_text, ocr2_err = "", ""
+
     if img1 and img1.filename:
-        extracted_1 = ocr_space_image(img1)
+        fn, bts, mt = compress_image(img1)
+        img1_url = f"data:{mt};base64," + base64.b64encode(bts).decode("utf-8")
+        ocr1_text, ocr1_err = ocr_space(bts, filename=fn)
 
     if img2 and img2.filename:
-        extracted_2 = ocr_space_image(img2)
+        fn, bts, mt = compress_image(img2)
+        img2_url = f"data:{mt};base64," + base64.b64encode(bts).decode("utf-8")
+        ocr2_text, ocr2_err = ocr_space(bts, filename=fn)
 
-    # وصف البرنامج (ذكي): إذا المستخدم ما كتب وصف، خله من OCR
-    program_desc = request.form.get("program_desc", "").strip()
+    ocr1_text = clean_text(ocr1_text)
+    ocr2_text = clean_text(ocr2_text)
+
+    # لو وصف البرنامج فاضي، عبّه تلقائي من OCR
     if not program_desc:
-        # نجمع النصوص المستخرجة ونقصها لو طويلة
-        combined = "\n\n".join([t for t in [extracted_1, extracted_2] if t]).strip()
-        if combined:
-            # اختصار بسيط عشان ما يصير طويل جدًا في البطاقة
-            program_desc = combined[:900]
-        else:
-            program_desc = "تم تنفيذ نشاط تعليمي داعم لعملية التعلم داخل الصف."
+        combined = "\n".join([t for t in [ocr1_text, ocr2_text] if t])
+        program_desc = auto_description_from_ocr(combined)
+
+    # لو اسم البرنامج فاضي، حاول تلميح بسيط
+    if not program_name:
+        program_name = "نشاط/برنامج تعليمي"
 
     return render_template(
         "result.html",
-        teacher_name=teacher_name,
-        subject_name=subject_name,
-        school_name=school_name,
-        leader_name=leader_name,
+        teacher=teacher,
+        subject=subject,
+        school=school,
+        principal=principal,
         program_name=program_name,
         program_desc=program_desc,
-        extracted_1=extracted_1,
-        extracted_2=extracted_2,
+        img1_url=img1_url,
+        img2_url=img2_url,
+        ocr1_text=ocr1_text,
+        ocr2_text=ocr2_text,
+        ocr1_err=ocr1_err,
+        ocr2_err=ocr2_err,
     )
 
 
+@app.get("/health")
+def health():
+    return {"ok": True}
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
