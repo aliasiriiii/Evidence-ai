@@ -2,127 +2,115 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>بطاقة توثيق</title>
   <style>
-    body{font-family:Arial, sans-serif; background:#f3f4f6; margin:0; padding:20px;}
-    .page{
-      width:210mm; min-height:297mm;
-      margin:auto; background:#fff;
-      border:1px solid #cbd5e1; border-radius:10px;
-      padding:14mm;
-      box-sizing:border-box;
-    }
-    .header{
-      background:#1f6f63; color:#fff; padding:10px 14px; border-radius:6px;
-      text-align:center; font-weight:bold;
-    }
-    .subheader{ text-align:center; margin-top:8px; color:#111827; font-weight:bold;}
-    table{width:100%; border-collapse:collapse; margin-top:12px; font-size:14px}
-    td,th{border:1px solid #9ca3af; padding:8px; vertical-align:top}
-    th{background:#e7f3f0}
-    .section-title{
-      background:#e7f3f0; border:1px solid #9ca3af;
-      padding:8px; margin-top:12px; font-weight:bold
-    }
-    .images{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;}
-    .imgbox{border:1px solid #9ca3af; height:70mm; display:flex; align-items:center; justify-content:center; overflow:hidden}
-    .imgbox img{width:100%; height:100%; object-fit:cover}
-    .sign{display:flex; justify-content:space-between; margin-top:18px; font-size:14px}
-    .btns{margin:12px 0; text-align:center}
-    .btn{background:#2563eb;color:#fff;border:0;padding:10px 14px;border-radius:10px;cursor:pointer}
-    .btn2{background:#0f766e;color:#fff;border:0;padding:10px 14px;border-radius:10px;cursor:pointer;margin-right:8px}
-    .ocrbox{border:1px dashed #9ca3af; padding:10px; margin-top:10px; white-space:pre-wrap; font-size:13px}
-    .err{color:#b91c1c; font-weight:bold; margin-top:8px}
+    body{font-family: "Tahoma", Arial, sans-serif; background:#f2f3f5; margin:0; padding:18px}
+    .page{max-width:980px; margin:0 auto}
+    .paper{background:#fff; border:1px solid #dcdcdc; border-radius:10px; padding:18px}
+    .topbar{background:#0f7a3b; color:#fff; padding:14px 16px; border-radius:8px; text-align:center; font-weight:700}
+    .subhead{margin:10px 0 14px; text-align:center; color:#333; font-weight:700}
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    td, th{border:1px solid #cfcfcf; padding:10px; vertical-align:middle}
+    th{background:#eef6ef; width:180px}
+    .section-title{background:#eef6ef; font-weight:700}
+    .images{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px}
+    .imgbox{border:1px solid #cfcfcf; height:260px; display:flex; align-items:center; justify-content:center; overflow:hidden}
+    .imgbox img{max-width:100%; max-height:100%; display:block}
+    .sign{display:flex; justify-content:space-between; margin-top:16px; color:#333}
+    .sign div{width:45%; min-height:60px}
+    .actions{display:flex; gap:10px; margin:14px 0}
+    .btn{border:0; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700}
+    .btn-primary{background:#0f7a3b; color:#fff}
+    .btn-ghost{background:#e9ecef; color:#222}
+    .muted{color:#666; font-size:12px}
 
-    /* طباعة PDF */
+    /* OCR box (مخفي افتراضي) */
+    details{margin-top:14px}
+    .ocrbox{border:1px dashed #b8b8b8; padding:12px; border-radius:10px; background:#fafafa; white-space:pre-wrap; font-size:13px; color:#333}
+    .err{color:#b00020; font-size:12px; margin-top:6px}
+
+    /* Print */
     @media print{
       body{background:#fff; padding:0}
-      .btns{display:none}
-      .page{border:none; border-radius:0; width:auto; min-height:auto; padding:10mm}
+      .actions, details, .muted{display:none !important}
+      .paper{border:0; border-radius:0}
     }
   </style>
 </head>
 <body>
-  <div class="btns">
-    <button class="btn2" onclick="window.print()">تحميل PDF</button>
-    <button class="btn" onclick="location.href='/'">رجوع</button>
-  </div>
-
   <div class="page">
-    <div class="header">الإدارة العامة للتعليم بالمنطقة الشرقية - وزارة التعليم</div>
-    <div class="subheader">بطاقة توثيق منجز (برنامج)</div>
-
-    <table>
-      <tr>
-        <th style="width:22%">اسم المعلم</th>
-        <td>{{ teacher or "—" }}</td>
-        <th style="width:18%">التخصص</th>
-        <td>{{ subject or "—" }}</td>
-      </tr>
-      <tr>
-        <th>المدرسة</th>
-        <td>{{ school or "—" }}</td>
-        <th>قائد المدرسة</th>
-        <td>{{ principal or "—" }}</td>
-      </tr>
-      <tr>
-        <th>التاريخ</th>
-        <td colspan="3"><span id="today"></span></td>
-      </tr>
-      <tr>
-        <th>اسم البرنامج / النشاط</th>
-        <td colspan="3">{{ program_name or "—" }}</td>
-      </tr>
-      <tr>
-        <th>وصف البرنامج</th>
-        <td colspan="3">{{ program_desc or "—" }}</td>
-      </tr>
-    </table>
-
-    <div class="section-title">الصور</div>
-    <div class="images">
-      <div class="imgbox">
-        {% if img1_url %}
-          <img src="{{ img1_url }}" alt="صورة 1" />
-        {% else %}
-          <div>صورة (1)</div>
-        {% endif %}
-      </div>
-      <div class="imgbox">
-        {% if img2_url %}
-          <img src="{{ img2_url }}" alt="صورة 2" />
-        {% else %}
-          <div>صورة (2)</div>
-        {% endif %}
-      </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="window.print()">تحميل PDF</button>
+      <a class="btn btn-ghost" href="/">رجوع</a>
     </div>
 
-    <div class="section-title">النص المستخرج (OCR)</div>
+    <div class="paper">
+      <div class="topbar">الإدارة العامة للتعليم بالمنطقة الشرقية — مكتب التعليم</div>
+      <div class="subhead">بطاقة توثيق منجز (برنامج)</div>
 
-    {% if ocr1_err %}
-      <div class="err">صورة (1): {{ ocr1_err }}</div>
-    {% endif %}
-    <div class="ocrbox">{{ ocr1_text or "—" }}</div>
+      <table>
+        <tr>
+          <th>اسم المعلم</th>
+          <td>{{ teacher or "—" }}</td>
+          <th>التخصص</th>
+          <td>{{ subject or "—" }}</td>
+        </tr>
+        <tr>
+          <th>المدرسة</th>
+          <td>{{ school or "—" }}</td>
+          <th>قائد المدرسة</th>
+          <td>{{ principal or "—" }}</td>
+        </tr>
+        <tr>
+          <th>التاريخ</th>
+          <td>{{ date or "—" }}</td>
+          <th>اسم البرنامج/النشاط</th>
+          <td>{{ program_name or "—" }}</td>
+        </tr>
+        <tr>
+          <th class="section-title">وصف البرنامج</th>
+          <td colspan="3">{{ program_desc or "—" }}</td>
+        </tr>
+      </table>
 
-    {% if ocr2_err %}
-      <div class="err">صورة (2): {{ ocr2_err }}</div>
-    {% endif %}
-    <div class="ocrbox">{{ ocr2_text or "—" }}</div>
+      <div class="images">
+        <div class="imgbox">
+          {% if img1_url %}
+            <img src="{{ img1_url }}" alt="صورة (1)">
+          {% else %}
+            <span class="muted">صورة (1)</span>
+          {% endif %}
+        </div>
+        <div class="imgbox">
+          {% if img2_url %}
+            <img src="{{ img2_url }}" alt="صورة (2)">
+          {% else %}
+            <span class="muted">صورة (2)</span>
+          {% endif %}
+        </div>
+      </div>
 
-    <div class="sign">
-      <div>توقيع قائد المدرسة: ____________</div>
-      <div>ختم المدرسة: ____________</div>
+      <div class="sign">
+        <div>توقيع قائد المدرسة: __________________</div>
+        <div style="text-align:left;">ختم المدرسة: __________________</div>
+      </div>
+
+      <div class="muted" style="margin-top:10px;">
+        {% if has_openai %}
+          تم توليد وصف البرنامج اعتماداً على OCR + GPT.
+        {% else %}
+          تم توليد وصف البرنامج اعتماداً على OCR فقط (بدون GPT).
+        {% endif %}
+      </div>
+
+      <details>
+        <summary>عرض النص المستخرج (OCR)</summary>
+        <div class="ocrbox">{{ ocr_text or "لا يوجد نص مستخرج." }}</div>
+        {% if ocr1_err %}<div class="err">صورة (1): {{ ocr1_err }}</div>{% endif %}
+        {% if ocr2_err %}<div class="err">صورة (2): {{ ocr2_err }}</div>{% endif %}
+      </details>
     </div>
   </div>
-
-  <script>
-    // تاريخ ذكي تلقائي (ميلادي) بصيغة yyyy/mm/dd
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    document.getElementById('today').textContent = `${yyyy}/${mm}/${dd}`;
-  </script>
 </body>
 </html>
