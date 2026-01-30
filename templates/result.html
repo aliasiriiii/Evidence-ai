@@ -1,128 +1,144 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>بطاقة توثيق شاهد</title>
   <style>
-    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f3f3f3; margin:0;}
-    .paper{
-      width: 210mm;
-      min-height: 297mm;
-      margin: 10px auto;
-      background:#fff;
-      padding: 12mm 12mm;
-      box-shadow:0 10px 35px rgba(0,0,0,.08);
-      border-radius:12px;
-    }
-    .header{
-      background:#1f7a4d;
-      color:#fff;
-      padding:12px 14px;
-      border-radius:10px;
-      text-align:center;
-      font-weight:700;
-      line-height:1.6;
-    }
-    .sub{margin:10px 0 8px; text-align:center; color:#333; font-weight:600;}
-    table{width:100%; border-collapse:collapse; font-size:14px;}
-    td,th{border:1px solid #cfcfcf; padding:8px; vertical-align:top;}
-    th{background:#eef6f0; width:22%;}
-    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;}
-    .imgbox{border:1px dashed #cfcfcf; border-radius:10px; padding:8px; min-height:120px; text-align:center;}
-    .imgbox img{max-width:100%; max-height:240px; border-radius:8px;}
-    .btns{display:flex; gap:10px; margin:10px 0;}
-    .btn{background:#1f7a4d; color:#fff; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-size:14px;}
-    .btn2{background:#555;}
-    .note{font-size:12px; color:#666; margin-top:6px;}
-    .section-title{margin:10px 0 6px; font-weight:700; color:#1f7a4d;}
-    .small{font-size:12px; color:#666}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto; background:#f5f7f6; margin:0; padding:18px;}
+    .wrap{max-width:980px; margin:0 auto; background:#fff; border:1px solid #e6e6e6; border-radius:12px; overflow:hidden;}
+    .hdr{background:#0f6d45; color:#fff; padding:14px 16px; text-align:center;}
+    .hdr .t1{font-weight:700;}
+    .hdr .t2{margin-top:4px; opacity:.95;}
+    .toolbar{display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-bottom:1px solid #eee; background:#fbfbfb;}
+    .btn{padding:10px 12px; border-radius:10px; border:1px solid #d8d8d8; background:#fff; cursor:pointer; font-size:14px;}
+    .btn.primary{background:#0f6d45; border-color:#0f6d45; color:#fff;}
+    .content{padding:16px;}
+    table{width:100%; border-collapse:collapse; table-layout:fixed;}
+    th,td{border:1px solid #dcdcdc; padding:10px; vertical-align:top; font-size:14px;}
+    th{background:#e9f2ed; width:160px;}
+    .images{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;}
+    .ph{border:2px dashed #d7d7d7; border-radius:12px; min-height:200px; display:flex; align-items:center; justify-content:center; color:#666; background:#fafafa; padding:10px;}
+    .ph img{max-width:100%; max-height:260px; object-fit:contain; border-radius:10px;}
+    .sectionTitle{margin-top:14px; font-weight:700; color:#0f6d45;}
+    .note{font-size:12px; color:#666; margin-top:10px; line-height:1.6;}
+    .signRow{display:flex; justify-content:space-between; margin-top:14px; color:#333; font-size:13px;}
+    .signBox{width:48%; border-top:1px dashed #bbb; padding-top:8px; text-align:center;}
 
-    /* -------- Print (صفحة وحدة) -------- */
+    /* ===== طباعة ===== */
     @media print{
-      body{background:#fff;}
-      .paper{box-shadow:none; margin:0; border-radius:0; width:auto; min-height:auto;}
-      .btns, .no-print{display:none !important;}
-      table, tr, td, th{page-break-inside:avoid !important;}
-      .grid2, .imgbox{page-break-inside:avoid !important;}
-      @page { size: A4; margin: 10mm; }
+      body{background:#fff; padding:0; margin:0;}
+      .toolbar{display:none !important;}
+      .wrap{border:0; border-radius:0;}
+      .content{padding:10mm;}
+      /* محاولة حصرها في صفحة واحدة */
+      .wrap, .content {break-inside:avoid;}
+      table, tr, td, th {break-inside:avoid;}
+      .images, .ph {break-inside:avoid;}
+      /* تصغير بسيط للطباعة */
+      th, td {font-size:12px; padding:7px;}
+      .ph img{max-height:220px;}
     }
   </style>
 </head>
 <body>
-  <div class="paper">
-    <div class="header">
-      الإدارة العامة للتعليم بالمنطقة الشرقية<br/>
-      مكتب التعليم - وزارة التعليم
-    </div>
-    <div class="sub">بطاقة توثيق شاهد (OCR + GPT)</div>
-
-    <div class="btns no-print">
-      <button class="btn" onclick="window.print()">طباعة / حفظ PDF</button>
-      <a class="btn btn2" href="/">رجوع</a>
+  <div class="wrap">
+    <div class="hdr">
+      <div class="t1">الإدارة العامة للتعليم بالمنطقة الشرقية</div>
+      <div class="t2">مكتب التعليم - وزارة التعليم</div>
+      <div class="t2" style="margin-top:8px; font-weight:700;">بطاقة توثيق شاهد (OCR + GPT)</div>
     </div>
 
-    <table>
-      <tr>
-        <th>اسم المعلم</th><td>{{teacher}}</td>
-        <th>التخصص</th><td>{{subject or "—"}}</td>
-      </tr>
-      <tr>
-        <th>المدرسة</th><td>{{school}}</td>
-        <th>قائد المدرسة</th><td>{{principal}}</td>
-      </tr>
-      <tr>
-        <th>التاريخ</th><td>{{date_str}}</td>
-        <th>اسم البرنامج/النشاط</th><td>{{program_name}}</td>
-      </tr>
-      <tr>
-        <th>وصف البرنامج</th><td colspan="3">{{program_desc}}</td>
-      </tr>
-    </table>
+    <div class="toolbar">
+      <button class="btn" onclick="history.back()">رجوع</button>
+      <button class="btn primary" onclick="window.print()">طباعة / حفظ PDF</button>
+    </div>
 
-    <div class="section-title">الصور</div>
-    <div class="grid2">
-      <div class="imgbox">
-        <div class="small">(صورة 1)</div>
-        {% if img1_url %}
-          <img src="{{img1_url}}" alt="image1">
-        {% else %}
-          <div class="small">لم يتم رفع صورة</div>
-        {% endif %}
-        {% if ocr1_err %}
-          <div class="small" style="color:#b00020;margin-top:6px">{{ocr1_err}}</div>
+    <div class="content">
+      <table>
+        <tr>
+          <th>اسم المعلم</th>
+          <td>{{ teacher }}</td>
+          <th>التخصص</th>
+          <td>{{ subject or "—" }}</td>
+        </tr>
+        <tr>
+          <th>المدرسة</th>
+          <td>{{ school }}</td>
+          <th>قائد المدرسة</th>
+          <td>{{ principal }}</td>
+        </tr>
+        <tr>
+          <th>التاريخ</th>
+          <td>{{ date_str }}</td>
+          <th>اسم البرنامج/النشاط</th>
+          <td>{{ program_name }}</td>
+        </tr>
+        <tr>
+          <th>وصف البرنامج</th>
+          <td colspan="3">{{ program_desc }}</td>
+        </tr>
+      </table>
+
+      <div class="sectionTitle">الصور</div>
+      <div class="images">
+        <div class="ph">
+          {% if img1_url %}
+            <div style="width:100%;">
+              <div style="font-size:12px;color:#666;margin-bottom:6px;">(صورة 1)</div>
+              <img src="{{ img1_url }}" alt="صورة الشاهد 1">
+            </div>
+          {% else %}
+            <div>(صورة 1) لم يتم رفع صورة</div>
+          {% endif %}
+        </div>
+        <div class="ph">
+          {% if img2_url %}
+            <div style="width:100%;">
+              <div style="font-size:12px;color:#666;margin-bottom:6px;">(صورة 2)</div>
+              <img src="{{ img2_url }}" alt="صورة الشاهد 2">
+            </div>
+          {% else %}
+            <div>(صورة 2) لم يتم رفع صورة</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="sectionTitle">ملخص الشاهد (OCR + GPT)</div>
+      <table>
+        <tr>
+          <th>الهدف</th>
+          <td>{{ gpt.goal }}</td>
+        </tr>
+        <tr>
+          <th>الإجراء / التنفيذ</th>
+          <td>{{ gpt.procedure }}</td>
+        </tr>
+        <tr>
+          <th>الأداة التقنية</th>
+          <td>{{ gpt.tech_tool }}</td>
+        </tr>
+        <tr>
+          <th>أسلوب التقويم</th>
+          <td>{{ gpt.assessment }}</td>
+        </tr>
+        <tr>
+          <th>الأثر التعليمي</th>
+          <td>{{ gpt.impact }}</td>
+        </tr>
+      </table>
+
+      <div class="note">
+        ملاحظة: تم توليد الملخص بالذكاء الاصطناعي بناءً على نص OCR وما يظهر من قرائن، بصياغة مهنية محافظة.
+        {% if gpt._gpt_error %}
+          <br><b>تنبيه تقني:</b> {{ gpt._gpt_error }}
         {% endif %}
       </div>
 
-      <div class="imgbox">
-        <div class="small">(صورة 2)</div>
-        {% if img2_url %}
-          <img src="{{img2_url}}" alt="image2">
-        {% else %}
-          <div class="small">لم يتم رفع صورة</div>
-        {% endif %}
-        {% if ocr2_err %}
-          <div class="small" style="color:#b00020;margin-top:6px">{{ocr2_err}}</div>
-        {% endif %}
+      <div class="signRow">
+        <div class="signBox">ختم المدرسة</div>
+        <div class="signBox">توقيع قائد المدرسة</div>
       </div>
-    </div>
-
-    <div class="section-title">ملخص الشاهد (OCR + GPT)</div>
-    <table>
-      <tr><th>الهدف</th><td>{{gpt.goal}}</td></tr>
-      <tr><th>الإجراء / التنفيذ</th><td>{{gpt.procedure}}</td></tr>
-      <tr><th>الأداة التقنية</th><td>{{gpt.tech_tool}}</td></tr>
-      <tr><th>أسلوب التقويم</th><td>{{gpt.assessment}}</td></tr>
-      <tr><th>الأثر التعليمي</th><td>{{gpt.impact}}</td></tr>
-    </table>
-
-    <div class="note no-print">
-      ملاحظة: إذا ظهر "غير مذكور في الشاهد" فهذا يعني أن النص المستخرج لا يحتوي دليل واضح على هذا البند.
-    </div>
-
-    <div style="display:flex; justify-content:space-between; margin-top:12px;">
-      <div class="small">توقيع قائد المدرسة</div>
-      <div class="small">ختم المدرسة</div>
     </div>
   </div>
 </body>
