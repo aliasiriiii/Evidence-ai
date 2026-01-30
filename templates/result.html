@@ -1,132 +1,119 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>بطاقة توثيق شاهد</title>
-  <style>
-    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f5f6f7; margin:0}
-    .wrap{max-width:980px;margin:18px auto;padding:14px}
-    .header{background:#166534;color:#fff;padding:14px;border-radius:12px;text-align:center}
-    .header h2{margin:0;font-size:18px}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-top:12px}
-    table{width:100%;border-collapse:collapse}
-    td,th{border:1px solid #d1d5db;padding:10px;vertical-align:top}
-    th{background:#f0fdf4;color:#14532d;text-align:right;width:180px}
-    .btns{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
-    .btn{background:#166534;color:#fff;border:0;border-radius:10px;padding:10px 12px;cursor:pointer}
-    .btn.gray{background:#374151}
-    .imgs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-    .imgbox{border:1px dashed #cbd5e1;border-radius:12px;min-height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fafafa}
-    .imgbox img{max-width:100%;max-height:320px;object-fit:contain}
-    .subttl{margin:10px 0 6px;font-weight:700;color:#14532d}
-    .note{font-size:12px;color:#6b7280;margin-top:10px}
+import os
+from datetime import datetime
+from PIL import Image
+import io
 
-    /* --- طباعة صفحة واحدة قدر الإمكان --- */
-    @media print{
-      body{background:#fff}
-      .wrap{margin:0;max-width:none;padding:0}
-      .btns{display:none !important}
-      .card{border:0;margin-top:6px}
-      .header{border-radius:0}
-      /* منع تقسيم العناصر */
-      table, .imgs, .card, .imgbox { page-break-inside: avoid; break-inside: avoid; }
-      /* محاولة تصغير لتدخل صفحة وحدة */
-      *{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .imgbox img{max-height:240px}
+app = Flask(__name__)
+
+# =========================
+# الإعدادات الثابتة
+# =========================
+SCHOOL_NAME = "ثانوية الظهران"
+PRINCIPAL_NAME = "أحمد الشمراني"
+DEFAULT_TEACHER = "علي عبدالله علي عسيري"
+
+OCR_API_KEY = os.getenv("OCR_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+# =========================
+# OCR
+# =========================
+def extract_text_from_image(image_bytes):
+    response = requests.post(
+        "https://api.ocr.space/parse/image",
+        files={"file": ("image.png", image_bytes)},
+        data={
+            "apikey": OCR_API_KEY,
+            "language": "ara",
+        },
+        timeout=25
+    )
+    result = response.json()
+    try:
+        return result["ParsedResults"][0]["ParsedText"]
+    except:
+        return ""
+
+# =========================
+# GPT (مرة وحدة فقط)
+# =========================
+def analyze_with_gpt(all_text):
+    prompt = f"""
+أنت خبير تربوي محترف.
+حلّل الشواهد التالية (حتى لو كانت غير واضحة أو ناقصة)،
+ولا تترك أي عنصر فارغ.
+
+استنتج بشكل ذكي ومهني:
+- وصف برنامج تعليمي متكامل
+- الهدف
+- آلية التنفيذ
+- التقنيات المستخدمة
+- أسلوب التقويم
+- الأثر التعليمي
+
+اكتب بلغة عربية واضحة، قوية، رسمية، ومفهومة للمشرف.
+
+النص المستخرج:
+{all_text}
+"""
+
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
     }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="header">
-      <h2>بطاقة توثيق شاهد (OCR + GPT)</h2>
-      <div style="font-size:12px;opacity:.9;margin-top:6px">الإدارة العامة للتعليم بالمنطقة الشرقية • وزارة التعليم</div>
-    </div>
 
-    <div class="btns">
-      <button class="btn gray" onclick="window.location.href='/'">رجوع</button>
-      <button class="btn" onclick="window.print()">طباعة / حفظ PDF</button>
-    </div>
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [
+            {"role": "system", "content": "أنت خبير تقويم تربوي."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.7
+    }
 
-    <div class="card">
-      <table>
-        <tr>
-          <th>اسم المعلم</th>
-          <td>{{ teacher }}</td>
-          <th>التخصص</th>
-          <td>{{ subject or "-" }}</td>
-        </tr>
-        <tr>
-          <th>المدرسة</th>
-          <td>{{ school }}</td>
-          <th>قائد المدرسة</th>
-          <td>{{ principal }}</td>
-        </tr>
-        <tr>
-          <th>التاريخ</th>
-          <td>{{ date_str }}</td>
-          <th>اسم البرنامج/النشاط</th>
-          <td>{{ program_name }}</td>
-        </tr>
-        <tr>
-          <th>وصف البرنامج</th>
-          <td colspan="3">{{ program_desc }}</td>
-        </tr>
-      </table>
+    response = requests.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers=headers,
+        json=payload,
+        timeout=30
+    )
 
-      <div class="subttl">الصور</div>
-      <div class="imgs">
-        <div class="imgbox">
-          {% if img1_url %}
-            <img src="{{ img1_url }}" alt="صورة 1"/>
-          {% else %}
-            <div style="color:#6b7280">لم يتم رفع صورة</div>
-          {% endif %}
-        </div>
-        <div class="imgbox">
-          {% if img2_url %}
-            <img src="{{ img2_url }}" alt="صورة 2"/>
-          {% else %}
-            <div style="color:#6b7280">لم يتم رفع صورة</div>
-          {% endif %}
-        </div>
-      </div>
+    data = response.json()
+    return data["choices"][0]["message"]["content"]
 
-      <div class="subttl">ملخص الشاهد (OCR + GPT)</div>
-      <table>
-        <tr>
-          <th>الهدف</th>
-          <td>{{ gpt.goal }}</td>
-        </tr>
-        <tr>
-          <th>الإجراء / التنفيذ</th>
-          <td>{{ gpt.procedure }}</td>
-        </tr>
-        <tr>
-          <th>الأداة التقنية</th>
-          <td>{{ gpt.tech_tool }}</td>
-        </tr>
-        <tr>
-          <th>أسلوب التقويم</th>
-          <td>{{ gpt.assessment }}</td>
-        </tr>
-        <tr>
-          <th>الأثر التعليمي</th>
-          <td>{{ gpt.impact }}</td>
-        </tr>
-      </table>
+# =========================
+# Routes
+# =========================
+@app.route("/")
+def index():
+    return render_template("index.html")
 
-      <div class="note">{{ note_footer }}</div>
+@app.route("/generate", methods=["POST"])
+def generate():
+    images = request.files.getlist("images")
 
-      {% if ocr1_err or ocr2_err or gpt._gpt_error %}
-      <div class="note" style="margin-top:8px">
-        {% if ocr1_err %}تنبيه OCR (صورة 1): {{ ocr1_err }}<br>{% endif %}
-        {% if ocr2_err %}تنبيه OCR (صورة 2): {{ ocr2_err }}<br>{% endif %}
-        {% if gpt._gpt_error %}تنبيه GPT: {{ gpt._gpt_error }}{% endif %}
-      </div>
-      {% endif %}
-    </div>
-  </div>
-</body>
-</html>
+    all_text = ""
+    for img in images:
+        img_bytes = img.read()
+        text = extract_text_from_image(img_bytes)
+        all_text += "\n" + text
+
+    if not all_text.strip():
+        all_text = "نشاط تعليمي داخل الصف لدعم تعلم الطلاب باستخدام أدوات متنوعة."
+
+    gpt_result = analyze_with_gpt(all_text)
+
+    teacher_name = request.form.get("teacher_name") or DEFAULT_TEACHER
+
+    return render_template(
+        "result.html",
+        date=datetime.now().strftime("%Y/%m/%d"),
+        school=SCHOOL_NAME,
+        principal=PRINCIPAL_NAME,
+        teacher=teacher_name,
+        result=gpt_result
+    )
+
+# =========================
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
