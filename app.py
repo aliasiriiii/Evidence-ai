@@ -1,26 +1,33 @@
 import os
 import io
 import time
+import base64
 import requests
 from PIL import Image
 from flask import Flask, render_template, request
 
+# OpenAI SDK (v1.x)
+from openai import OpenAI
+
 app = Flask(__name__)
 
-OCR_API_KEY = os.environ.get("OCR_SPACE_KEY", "").strip()
+OCR_API_KEY = (os.environ.get("OCR_SPACE_KEY") or "").strip()
+OPENAI_API_KEY = (os.environ.get("OPENAI_API_KEY") or "").strip()
+
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+
 
 # -----------------------------
 # Helpers
 # -----------------------------
-def compress_image(file_storage, max_w=1600, quality=75):
+def compress_image(file_storage, max_w=1600, quality=78):
     """
-    يقلل حجم الصورة قبل إرسالها لـ OCR.space عشان السرعة + يقلل تعليق الشبكة
+    يقلل حجم الصورة قبل إرسالها لـ OCR.space لزيادة السرعة وتقليل التقطيع
     يرجع (filename, bytes, mimetype)
     """
     filename = file_storage.filename or "upload.jpg"
     img = Image.open(file_storage.stream)
 
-    # تحويل إلى RGB لو PNG فيها ألفا
     if img.mode in ("RGBA", "P"):
         img = img.convert("RGB")
 
@@ -35,10 +42,10 @@ def compress_image(file_storage, max_w=1600, quality=75):
     return filename, buf.getvalue(), "image/jpeg"
 
 
-def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=30):
+def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=35):
     """
-    OCR.space لا يقبل ara كلغة (يطلع E201)
-    الحل الأفضل: لا ترسل language أصلاً (يتعرف على العربي تلقائياً غالباً)
+    ملاحظة: OCR.space ممكن يطلع E201 لو أرسلت language غير مقبول
+    لذلك: لا نرسل language نهائياً (غالباً يتعرف)
     """
     if not OCR_API_KEY:
         return "", "مفتاح OCR_SPACE_KEY غير موجود في Render Environment Variables"
@@ -49,11 +56,9 @@ def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=30):
         "isOverlayRequired": "false",
         "OCREngine": "2",
         "scale": "true",
-        # لا نرسل language نهائياً لتجنب E201
+        # لا نرسل language نهائياً لتفادي E201
     }
-    files = {
-        "filename": (filename, image_bytes, "image/jpeg")
-    }
+    files = {"filename": (filename, image_bytes, "image/jpeg")}
 
     last_err = None
     for attempt in range(retries + 1):
@@ -63,7 +68,6 @@ def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=30):
             j = r.json()
 
             if j.get("IsErroredOnProcessing"):
-                msg = ""
                 errs = j.get("ErrorMessage")
                 if isinstance(errs, list):
                     msg = " | ".join(errs)
@@ -75,8 +79,7 @@ def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=30):
             if not parsed:
                 return "", "OCR رجّع نتيجة فاضية"
 
-            text = parsed[0].get("ParsedText", "") or ""
-            text = text.strip()
+            text = (parsed[0].get("ParsedText") or "").strip()
             return text, ""
 
         except requests.exceptions.Timeout:
@@ -84,31 +87,63 @@ def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=30):
         except Exception as e:
             last_err = f"خطأ اتصال/تحليل OCR: {e}"
 
-        time.sleep(0.8 * (attempt + 1))
+        time.sleep(0.9 * (attempt + 1))
 
-    return "", last_err or "فشل OCR لسبب غير معروف"
+    return "", (last_err or "فشل OCR لسبب غير معروف")
 
 
 def clean_text(t: str) -> str:
     if not t:
         return ""
-    # تنظيف بسيط: سطور فاضية كثيرة
     lines = [ln.strip() for ln in t.splitlines()]
     lines = [ln for ln in lines if ln]
     return "\n".join(lines)
 
 
-def auto_description_from_ocr(ocr_text: str) -> str:
+def make_educational_summary_with_gpt(ocr_text: str, program_name_hint: str = "") -> str:
     """
-    يطلع وصف رسمي مختصر من النص المستخرج (بدون GPT)
+    يحوّل OCR إلى وصف تربوي رسمي مختصر (بدون اختراع مبالغ).
     """
     t = clean_text(ocr_text)
     if not t:
         return ""
-    # خذ أول 2-3 أسطر كفكرة
-    lines = t.splitlines()[:3]
-    snippet = " ".join(lines)
-    return f"تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف. (ملخص من الشاهد: {snippet})"
+
+    if not client:
+        # fallback بدون GPT
+        lines = t.splitlines()[:3]
+        snippet = " ".join(lines)
+        return f"تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف. (ملخص من الشاهد: {snippet})"
+
+    try:
+        prompt = f"""
+أنت مساعد تربوي. عندك نص خام مستخرج من صورة (OCR) وقد يكون فيه تشويش.
+مطلوب منك: كتابة "وصف البرنامج" بصياغة رسمية مختصرة (سطرين إلى أربعة أسطر) باللغة العربية الفصحى.
+شروط مهمة:
+- لا تخترع أسماء أو أرقام أو جهات غير موجودة.
+- إذا كان النص غير واضح، اكتب وصفاً عاماً مناسباً للشواهد التعليمية دون مبالغة.
+- ركّز على: الهدف التعليمي، ماذا تم داخل الصف، وأثره على تعلم الطلاب.
+- لا تذكر كلمة OCR ولا تذكر أنك نموذج ذكاء اصطناعي.
+
+تلميح اسم البرنامج (إن وجد): {program_name_hint}
+
+نص الشاهد:
+{t}
+""".strip()
+
+        # Responses API
+        resp = client.responses.create(
+            model="gpt-4o-mini",
+            input=prompt,
+            temperature=0.2,
+        )
+        out = (resp.output_text or "").strip()
+        return out
+
+    except Exception as e:
+        # fallback لو GPT تعطل
+        lines = t.splitlines()[:3]
+        snippet = " ".join(lines)
+        return f"تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف. (ملخص من الشاهد: {snippet})"
 
 
 # -----------------------------
@@ -121,11 +156,12 @@ def index():
 
 @app.route("/generate", methods=["POST"])
 def generate():
-    # بيانات النموذج
     teacher = (request.form.get("teacher") or "").strip()
     subject = (request.form.get("subject") or "").strip()
     school = (request.form.get("school") or "").strip()
     principal = (request.form.get("principal") or "").strip()
+    date = (request.form.get("date") or "").strip()
+
     program_name = (request.form.get("program_name") or "").strip()
     program_desc = (request.form.get("program_desc") or "").strip()
 
@@ -134,9 +170,6 @@ def generate():
 
     img1_url = None
     img2_url = None
-
-    # نخزن الصور كـ base64 داخل الصفحة (بدون ملفات على السيرفر) عشان يكون سهل على Render
-    import base64
 
     ocr1_text, ocr1_err = "", ""
     ocr2_text, ocr2_err = "", ""
@@ -154,14 +187,14 @@ def generate():
     ocr1_text = clean_text(ocr1_text)
     ocr2_text = clean_text(ocr2_text)
 
-    # لو وصف البرنامج فاضي، عبّه تلقائي من OCR
-    if not program_desc:
-        combined = "\n".join([t for t in [ocr1_text, ocr2_text] if t])
-        program_desc = auto_description_from_ocr(combined)
+    combined_ocr = "\n".join([x for x in [ocr1_text, ocr2_text] if x]).strip()
 
-    # لو اسم البرنامج فاضي، حاول تلميح بسيط
     if not program_name:
         program_name = "نشاط/برنامج تعليمي"
+
+    # الوصف: إذا المستخدم ما كتب وصف، خل GPT يبنيه من OCR
+    if not program_desc:
+        program_desc = make_educational_summary_with_gpt(combined_ocr, program_name_hint=program_name)
 
     return render_template(
         "result.html",
@@ -169,14 +202,15 @@ def generate():
         subject=subject,
         school=school,
         principal=principal,
+        date=date,
         program_name=program_name,
         program_desc=program_desc,
         img1_url=img1_url,
         img2_url=img2_url,
-        ocr1_text=ocr1_text,
-        ocr2_text=ocr2_text,
+        ocr_text=combined_ocr,
         ocr1_err=ocr1_err,
         ocr2_err=ocr2_err,
+        has_openai=bool(client),
     )
 
 
