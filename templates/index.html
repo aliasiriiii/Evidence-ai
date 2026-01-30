@@ -2,25 +2,27 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>بطاقة توثيق شاهد</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>بطاقة توثيق منجز (برنامج)</title>
   <style>
-    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f6f7f9; margin:0;}
-    .wrap{max-width:900px; margin:24px auto; background:#fff; padding:18px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,.06)}
-    h1{margin:0 0 12px; font-size:20px}
-    .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-    label{font-size:13px; color:#333}
-    input, textarea{width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:14px}
-    textarea{min-height:90px}
-    .full{grid-column:1 / -1}
-    .btn{margin-top:14px; background:#1b7f5a; color:#fff; border:none; padding:12px 16px; border-radius:10px; font-size:15px; cursor:pointer}
-    .hint{font-size:12px; color:#666; margin-top:8px}
+    body{font-family:Tahoma,Arial; background:#f6f7f9; margin:0; padding:0;}
+    .wrap{max-width:980px; margin:20px auto; background:#fff; padding:18px; border-radius:12px; box-shadow:0 6px 16px rgba(0,0,0,.08);}
+    h1{margin:0 0 14px; font-size:20px;}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+    label{font-weight:700; font-size:13px;}
+    input,textarea{width:100%; padding:10px; border:1px solid #cfd8dc; border-radius:10px; font-size:14px;}
+    textarea{min-height:90px;}
+    .full{grid-column:1 / -1;}
+    .btn{background:#1b5e20; color:#fff; border:0; padding:12px 16px; border-radius:10px; font-weight:700; cursor:pointer;}
+    .hint{color:#546e7a; font-size:12px; margin-top:6px;}
+    .sec{margin-top:14px; padding-top:14px; border-top:1px dashed #e0e0e0;}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>بطاقة توثيق منجز (برنامج)</h1>
-    <form action="/generate" method="POST" enctype="multipart/form-data">
+    <h1>بطاقة توثيق منجز (برنامج) - OCR + GPT</h1>
+
+    <form method="POST" action="/generate" enctype="multipart/form-data">
       <div class="grid">
         <div>
           <label>اسم المعلم</label>
@@ -30,7 +32,6 @@
           <label>التخصص</label>
           <input name="subject" placeholder="مثال: فيزياء" />
         </div>
-
         <div>
           <label>المدرسة</label>
           <input name="school" placeholder="مثال: ثانوية الظهران الحكومية" />
@@ -40,28 +41,33 @@
           <input name="principal" placeholder="مثال: راشد سعيد القحطاني" />
         </div>
 
-        <div class="full">
-          <label>اسم البرنامج / النشاط (اختياري)</label>
-          <input name="program_name" placeholder="اتركه فاضي لو تبي GPT يقترح" />
-        </div>
-
-        <div class="full">
-          <label>وصف البرنامج (اختياري)</label>
-          <textarea name="program_desc" placeholder="اتركه فاضي لو تبي GPT يكتب وصف رسمي من OCR"></textarea>
+        <div>
+          <label>التاريخ</label>
+          <input name="date" placeholder="YYYY/MM/DD (اختياري)" />
+          <div class="hint">لو تركته فاضي يحطه تلقائي بتاريخ اليوم</div>
         </div>
 
         <div>
+          <label>تلميح اسم النشاط (اختياري)</label>
+          <input name="program_hint" placeholder="مثال: التعلم بالمحاكاة وتطبيقات فيزياء" />
+          <div class="hint">GPT يحاول يصيغ اسم رسمي بناءً على OCR + هذا التلميح</div>
+        </div>
+
+        <div class="full sec">
           <label>صورة (1)</label>
           <input type="file" name="image1" accept="image/*" />
         </div>
-        <div>
-          <label>صورة (2)</label>
+
+        <div class="full">
+          <label>صورة (2) - اختياري</label>
           <input type="file" name="image2" accept="image/*" />
         </div>
-      </div>
 
-      <button class="btn" type="submit">إنشاء البطاقة</button>
-      <div class="hint">التاريخ داخل البطاقة يتعبّى تلقائيًا في صفحة النتيجة.</div>
+        <div class="full sec">
+          <button class="btn" type="submit">إنشاء البطاقة</button>
+          <div class="hint">بيسوي OCR للصور + يطلّع وصف تربوي احترافي + (عنصرين كحد أقصى) من عناصر تقييم الأداء</div>
+        </div>
+      </div>
     </form>
   </div>
 </body>
