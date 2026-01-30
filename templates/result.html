@@ -2,72 +2,129 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>بطاقة توثيق</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>بطاقة توثيق منجز (برنامج)</title>
   <style>
-    body{font-family: Tahoma, Arial; background:#f3f4f6; margin:0; padding:18px}
-    .page{max-width:980px; margin:0 auto; background:#fff; border:1px solid #cfd6dc}
-    .topbar{background:#1f6b52; color:#fff; padding:18px; text-align:center}
-    .topbar .t1{font-size:16px; font-weight:bold}
-    .topbar .t2{font-size:13px; opacity:.95; margin-top:6px}
-    .title{padding:14px 18px; text-align:center; font-weight:bold}
-    table{width:100%; border-collapse:collapse; font-size:14px}
-    td, th{border:1px solid #cfd6dc; padding:10px; vertical-align:middle}
-    th{background:#eef5f2; text-align:center}
-    .label{background:#eef5f2; width:18%}
-    .val{width:32%}
-    .section{padding:16px 18px}
-    .imggrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-    .imgbox{border:1px solid #cfd6dc; min-height:220px; display:flex; align-items:center; justify-content:center}
-    .imgbox img{max-width:100%; max-height:360px; display:block}
-    .footer{display:flex; justify-content:space-between; padding:16px 18px; gap:10px}
-    .sig{width:48%; min-height:70px; border-top:1px solid #cfd6dc; padding-top:8px; font-size:13px; color:#333}
-    .btns{display:flex; justify-content:center; gap:10px; padding:14px}
-    .btn{border:0; padding:10px 14px; border-radius:10px; cursor:pointer}
-    .pdf{background:#1f6b52; color:#fff}
-    .back{background:#e5e7eb}
-    details{margin-top:14px}
-    details summary{cursor:pointer; color:#1f6b52; font-weight:bold}
-    pre{white-space:pre-wrap; background:#fafafa; border:1px dashed #ddd; padding:10px; border-radius:10px; font-size:12px}
+    body{font-family:Tahoma,Arial; background:#f3f4f6; margin:0; padding:0;}
+    .page{
+      width: 1000px;
+      margin: 18px auto;
+      background: #fff;
+      padding: 18px 18px 10px;
+      border: 1px solid #d0d0d0;
+      border-radius: 10px;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+    .bar{
+      background:#2e7d32;
+      color:#fff;
+      padding:12px 14px;
+      font-weight:800;
+      text-align:center;
+      border-radius:8px;
+      letter-spacing:.2px;
+    }
+    .minihead{
+      margin:10px 0 14px;
+      text-align:center;
+      color:#2f2f2f;
+      font-weight:700;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:14px;
+    }
+    td{
+      border:1px solid #bdbdbd;
+      padding:10px;
+      vertical-align:top;
+    }
+    .label{
+      background:#e8f5e9;
+      font-weight:800;
+      width: 170px;
+      white-space:nowrap;
+    }
+    .row2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .imgbox{
+      border:1px solid #bdbdbd;
+      min-height:240px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#777;
+      border-radius:8px;
+      overflow:hidden;
+      background:#fafafa;
+    }
+    .imgbox img{width:100%; height:100%; object-fit:cover;}
+    .foot{
+      display:flex;
+      justify-content:space-between;
+      margin-top: 14px;
+      padding-top: 10px;
+      color:#333;
+    }
+    .btns{
+      margin-top:10px;
+      text-align:center;
+    }
+    .btn{
+      background:#1b5e20;
+      color:#fff;
+      border:0;
+      padding:10px 16px;
+      border-radius:10px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .ocr{
+      margin-top:14px;
+      border:1px dashed #c8c8c8;
+      border-radius:10px;
+      padding:12px;
+      color:#37474f;
+      background:#fbfbfb;
+      font-size:13px;
+    }
+    .smallnote{font-size:12px; color:#607d8b; margin-top:6px;}
 
+    /* للطباعة PDF */
     @media print{
-      body{background:#fff; padding:0}
-      .btns, details{display:none !important;}
-      .page{border:none}
+      body{background:#fff;}
+      .page{box-shadow:none; border:0; width:auto; margin:0; border-radius:0;}
+      .btns{display:none;}
+      .ocr{display:none;} /* نخفي OCR/GPT بالنتيجة عند الطباعة */
     }
   </style>
 </head>
 <body>
-
-  <div class="btns">
-    <button class="btn pdf" onclick="window.print()">تحميل PDF</button>
-    <button class="btn back" onclick="location.href='/'">رجوع</button>
-  </div>
-
-  <div class="page" id="card">
-    <div class="topbar">
-      <div class="t1">الإدارة العامة للتعليم بالمنطقة الشرقية</div>
-      <div class="t2">مكتب التعليم - وزارة التعليم</div>
-    </div>
-
-    <div class="title">بطاقة توثيق منجز (برنامج)</div>
+  <div class="page">
+    <div class="bar">الإدارة العامة للتعليم بالمنطقة الشرقية - مكتب التعليم - وزارة التعليم</div>
+    <div class="minihead">بطاقة توثيق منجز (برنامج)</div>
 
     <table>
       <tr>
         <td class="label">اسم المعلم</td>
-        <td class="val">{{ teacher }}</td>
+        <td>{{ teacher }}</td>
         <td class="label">التخصص</td>
-        <td class="val">{{ subject }}</td>
+        <td>{{ subject }}</td>
       </tr>
       <tr>
         <td class="label">المدرسة</td>
-        <td class="val">{{ school }}</td>
+        <td>{{ school }}</td>
         <td class="label">قائد المدرسة</td>
-        <td class="val">{{ principal }}</td>
+        <td>{{ principal }}</td>
       </tr>
       <tr>
         <td class="label">التاريخ</td>
-        <td colspan="3" id="today"></td>
+        <td colspan="3">{{ date_str }}</td>
       </tr>
       <tr>
         <td class="label">اسم البرنامج / النشاط</td>
@@ -79,48 +136,72 @@
       </tr>
     </table>
 
-    <div class="section">
-      <div style="font-weight:bold; margin-bottom:10px">الصور</div>
-      <div class="imggrid">
-        <div class="imgbox">
-          {% if img1_url %}
-            <img src="{{ img1_url }}" alt="صورة 1">
-          {% else %}
-            <div>صورة (1)</div>
-          {% endif %}
-        </div>
-        <div class="imgbox">
-          {% if img2_url %}
-            <img src="{{ img2_url }}" alt="صورة 2">
-          {% else %}
-            <div>صورة (2)</div>
-          {% endif %}
-        </div>
+    <div class="row2">
+      <div class="imgbox">
+        {% if img1_url %}
+          <img src="{{ img1_url }}" alt="صورة 1" />
+        {% else %}
+          <div>صورة (1)</div>
+        {% endif %}
       </div>
-
-      <details>
-        <summary>عرض النص المستخرج (OCR) - مخفي افتراضيًا</summary>
-        {% if ocr1_err %}<div style="color:#b91c1c; margin-top:8px">{{ ocr1_err }}</div>{% endif %}
-        {% if ocr2_err %}<div style="color:#b91c1c; margin-top:8px">{{ ocr2_err }}</div>{% endif %}
-        <pre>{{ ocr1_text }}</pre>
-        <pre>{{ ocr2_text }}</pre>
-      </details>
+      <div class="imgbox">
+        {% if img2_url %}
+          <img src="{{ img2_url }}" alt="صورة 2" />
+        {% else %}
+          <div>صورة (2)</div>
+        {% endif %}
+      </div>
     </div>
 
-    <div class="footer">
-      <div class="sig">توقيع قائد المدرسة</div>
-      <div class="sig">ختم المدرسة</div>
+    <div class="foot">
+      <div>توقيع قائد المدرسة</div>
+      <div>ختم المدرسة</div>
     </div>
+
+    <div class="btns">
+      <button class="btn" onclick="window.print()">تحميل PDF</button>
+      <div class="smallnote">الـ PDF يتم عبر الطباعة (Print) من المتصفح</div>
+    </div>
+
+    <!-- معاينة فقط (لن تظهر في الطباعة) -->
+    <div class="ocr">
+      <div style="font-weight:900; margin-bottom:6px;">ملخص الشاهد (OCR + GPT) للمعاينة فقط:</div>
+
+      {% if ocr1_err or ocr2_err %}
+        <div style="color:#b00020; font-weight:700;">
+          {% if ocr1_err %} (صورة1) {{ ocr1_err }} {% endif %}
+          {% if ocr2_err %} (صورة2) {{ ocr2_err }} {% endif %}
+        </div>
+      {% endif %}
+
+      {% if gpt_err %}
+        <div style="color:#b00020; font-weight:700; margin-top:6px;">{{ gpt_err }}</div>
+      {% endif %}
+
+      <table style="margin-top:10px;">
+        <tr><td class="label">الهدف</td><td>{{ gpt_blocks.goal }}</td></tr>
+        <tr><td class="label">الإجراء/التنفيذ</td><td>{{ gpt_blocks.implementation }}</td></tr>
+        <tr><td class="label">الأداة/التقنية</td><td>{{ gpt_blocks.tools }}</td></tr>
+        <tr><td class="label">أسلوب التقويم</td><td>{{ gpt_blocks.assessment }}</td></tr>
+        <tr><td class="label">الأثر</td><td>{{ gpt_blocks.impact }}</td></tr>
+      </table>
+
+      <div style="margin-top:10px; font-weight:900;">عناصر الأداء المرتبطة بالشاهد (محافظ):</div>
+      {% if rubric_top2 and rubric_top2|length > 0 %}
+        <ul style="margin:8px 18px 0;">
+          {% for it in rubric_top2 %}
+            <li><b>{{ it.name }}</b> — {{ it.reason }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div style="margin-top:6px;">غير محدد (لا يوجد دليل كافٍ في النص)</div>
+      {% endif %}
+
+      <div class="smallnote" style="margin-top:10px;">
+        ملاحظة: العرض أعلاه للمعاينة فقط، ويختفي تلقائيًا عند طباعة PDF.
+      </div>
+    </div>
+
   </div>
-
-  <script>
-    // تاريخ ذكي تلقائي: yyyy/mm/dd
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    document.getElementById('today').textContent = `${yyyy}/${mm}/${dd}`;
-  </script>
-
 </body>
 </html>
