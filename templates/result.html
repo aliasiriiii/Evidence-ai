@@ -1,267 +1,129 @@
-
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <title>بطاقة توثيق منجز (برنامج)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>بطاقة توثيق شاهد</title>
   <style>
-    body{
-      font-family: Tahoma, Arial, sans-serif;
-      background:#f4f6f5;
-      margin:0;
-      padding:0;
-      color:#1f2a24;
-    }
-    .page{
-      max-width:960px;
-      margin:20px auto;
+    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f3f3f3; margin:0;}
+    .paper{
+      width: 210mm;
+      min-height: 297mm;
+      margin: 10px auto;
       background:#fff;
-      border:1px solid #cfd8d3;
-      box-shadow:0 6px 20px rgba(0,0,0,.08);
+      padding: 12mm 12mm;
+      box-shadow:0 10px 35px rgba(0,0,0,.08);
+      border-radius:12px;
     }
-
-    /* ===== Header ===== */
     .header{
-      background:#2f6b57;
+      background:#1f7a4d;
       color:#fff;
-      padding:16px;
-      text-align:center;
-    }
-    .header small{
-      display:block;
-      font-size:14px;
-      margin-bottom:6px;
-    }
-    .header h1{
-      font-size:20px;
-      margin:0;
-      background:rgba(0,0,0,.25);
-      display:inline-block;
-      padding:8px 18px;
+      padding:12px 14px;
       border-radius:10px;
-    }
-
-    /* ===== Content ===== */
-    .content{
-      padding:16px;
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:14px;
-    }
-    th, td{
-      border:1px solid #cfd8d3;
-      padding:8px 10px;
-    }
-    th{
-      background:#e9f2ee;
-      color:#2f6b57;
-      width:160px;
-      text-align:right;
-    }
-
-    .section{
-      margin-top:16px;
-      background:#e9f2ee;
-      color:#2f6b57;
-      font-weight:bold;
-      padding:8px 12px;
-      border:1px solid #cfd8d3;
-    }
-
-    /* ===== Images ===== */
-    .images{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-      margin-top:10px;
-    }
-    .img-box{
-      border:1px solid #cfd8d3;
-      height:260px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      position:relative;
-    }
-    .img-box span{
-      position:absolute;
-      top:8px;
-      right:8px;
-      background:rgba(0,0,0,.6);
-      color:#fff;
-      font-size:12px;
-      padding:4px 8px;
-      border-radius:20px;
-    }
-    .img-box img{
-      max-width:100%;
-      max-height:100%;
-      object-fit:contain;
-    }
-
-    /* ===== OCR + GPT ===== */
-    .analysis{
-      margin-top:18px;
-      border:1px dashed #b7c7c0;
-      padding:12px;
-    }
-    .analysis h3{
-      margin:0 0 8px;
-      font-size:15px;
-      color:#2f6b57;
-    }
-    .analysis table{
-      margin-top:8px;
-      font-size:13px;
-    }
-    .analysis th{
-      background:#f3f6f4;
-      width:200px;
-    }
-    .note{
-      font-size:12px;
-      color:#666;
-      margin-top:8px;
-    }
-
-    /* ===== Footer ===== */
-    .footer{
-      display:flex;
-      justify-content:space-between;
-      margin-top:18px;
-      font-size:14px;
-    }
-
-    /* ===== Buttons ===== */
-    .actions{
       text-align:center;
-      margin:16px 0;
+      font-weight:700;
+      line-height:1.6;
     }
-    .btn{
-      background:#2f6b57;
-      color:#fff;
-      padding:10px 16px;
-      border:none;
-      border-radius:8px;
-      font-size:14px;
-      cursor:pointer;
-    }
+    .sub{margin:10px 0 8px; text-align:center; color:#333; font-weight:600;}
+    table{width:100%; border-collapse:collapse; font-size:14px;}
+    td,th{border:1px solid #cfcfcf; padding:8px; vertical-align:top;}
+    th{background:#eef6f0; width:22%;}
+    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;}
+    .imgbox{border:1px dashed #cfcfcf; border-radius:10px; padding:8px; min-height:120px; text-align:center;}
+    .imgbox img{max-width:100%; max-height:240px; border-radius:8px;}
+    .btns{display:flex; gap:10px; margin:10px 0;}
+    .btn{background:#1f7a4d; color:#fff; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-size:14px;}
+    .btn2{background:#555;}
+    .note{font-size:12px; color:#666; margin-top:6px;}
+    .section-title{margin:10px 0 6px; font-weight:700; color:#1f7a4d;}
+    .small{font-size:12px; color:#666}
 
-    /* ===== Print ===== */
+    /* -------- Print (صفحة وحدة) -------- */
     @media print{
       body{background:#fff;}
-      .actions{display:none;}
-      .page{box-shadow:none;}
+      .paper{box-shadow:none; margin:0; border-radius:0; width:auto; min-height:auto;}
+      .btns, .no-print{display:none !important;}
+      table, tr, td, th{page-break-inside:avoid !important;}
+      .grid2, .imgbox{page-break-inside:avoid !important;}
+      @page { size: A4; margin: 10mm; }
     }
   </style>
 </head>
-
 <body>
+  <div class="paper">
+    <div class="header">
+      الإدارة العامة للتعليم بالمنطقة الشرقية<br/>
+      مكتب التعليم - وزارة التعليم
+    </div>
+    <div class="sub">بطاقة توثيق شاهد (OCR + GPT)</div>
 
-<div class="page">
-
-  <div class="header">
-    <small>
-      الإدارة العامة للتعليم بالمنطقة الشرقية<br>
-      مكتب التعليم – وزارة التعليم
-    </small>
-    <h1>بطاقة توثيق منجز (برنامج)</h1>
-  </div>
-
-  <div class="content">
+    <div class="btns no-print">
+      <button class="btn" onclick="window.print()">طباعة / حفظ PDF</button>
+      <a class="btn btn2" href="/">رجوع</a>
+    </div>
 
     <table>
       <tr>
-        <th>اسم المعلم</th>
-        <td>{{ teacher }}</td>
-        <th>التخصص</th>
-        <td>{{ subject }}</td>
+        <th>اسم المعلم</th><td>{{teacher}}</td>
+        <th>التخصص</th><td>{{subject or "—"}}</td>
       </tr>
       <tr>
-        <th>المدرسة</th>
-        <td>{{ school }}</td>
-        <th>قائد المدرسة</th>
-        <td>{{ principal }}</td>
+        <th>المدرسة</th><td>{{school}}</td>
+        <th>قائد المدرسة</th><td>{{principal}}</td>
       </tr>
       <tr>
-        <th>اسم البرنامج / النشاط</th>
-        <td colspan="3">{{ program_name }}</td>
+        <th>التاريخ</th><td>{{date_str}}</td>
+        <th>اسم البرنامج/النشاط</th><td>{{program_name}}</td>
       </tr>
       <tr>
-        <th>وصف البرنامج</th>
-        <td colspan="3">{{ program_desc }}</td>
+        <th>وصف البرنامج</th><td colspan="3">{{program_desc}}</td>
       </tr>
     </table>
 
-    <div class="section">الصور</div>
-
-    <div class="images">
-      <div class="img-box">
-        <span>صورة (1)</span>
+    <div class="section-title">الصور</div>
+    <div class="grid2">
+      <div class="imgbox">
+        <div class="small">(صورة 1)</div>
         {% if img1_url %}
-          <img src="{{ img1_url }}">
+          <img src="{{img1_url}}" alt="image1">
+        {% else %}
+          <div class="small">لم يتم رفع صورة</div>
+        {% endif %}
+        {% if ocr1_err %}
+          <div class="small" style="color:#b00020;margin-top:6px">{{ocr1_err}}</div>
         {% endif %}
       </div>
-      <div class="img-box">
-        <span>صورة (2)</span>
+
+      <div class="imgbox">
+        <div class="small">(صورة 2)</div>
         {% if img2_url %}
-          <img src="{{ img2_url }}">
+          <img src="{{img2_url}}" alt="image2">
+        {% else %}
+          <div class="small">لم يتم رفع صورة</div>
+        {% endif %}
+        {% if ocr2_err %}
+          <div class="small" style="color:#b00020;margin-top:6px">{{ocr2_err}}</div>
         {% endif %}
       </div>
     </div>
 
-    <!-- ===== OCR + GPT ===== -->
-    <div class="analysis">
-      <h3>ملخص الشاهد (OCR + GPT)</h3>
+    <div class="section-title">ملخص الشاهد (OCR + GPT)</div>
+    <table>
+      <tr><th>الهدف</th><td>{{gpt.goal}}</td></tr>
+      <tr><th>الإجراء / التنفيذ</th><td>{{gpt.procedure}}</td></tr>
+      <tr><th>الأداة التقنية</th><td>{{gpt.tech_tool}}</td></tr>
+      <tr><th>أسلوب التقويم</th><td>{{gpt.assessment}}</td></tr>
+      <tr><th>الأثر التعليمي</th><td>{{gpt.impact}}</td></tr>
+    </table>
 
-      <table>
-        <tr>
-          <th>الهدف</th>
-          <td>{{ gpt_goal or "غير مذكور في الشاهد" }}</td>
-        </tr>
-        <tr>
-          <th>الإجراء / التنفيذ</th>
-          <td>{{ gpt_process or "غير مذكور في الشاهد" }}</td>
-        </tr>
-        <tr>
-          <th>الأداة / التقنية</th>
-          <td>{{ gpt_tool or "غير مذكور في الشاهد" }}</td>
-        </tr>
-        <tr>
-          <th>أسلوب التقويم</th>
-          <td>{{ gpt_assessment or "غير مذكور في الشاهد" }}</td>
-        </tr>
-        <tr>
-          <th>الأثر التعليمي</th>
-          <td>{{ gpt_impact or "غير مذكور في الشاهد" }}</td>
-        </tr>
-      </table>
-
-      <div class="note">
-        * تم توليد الملخص آليًا بالاعتماد على النص المستخرج من الصور (OCR) وتحليله باستخدام الذكاء الاصطناعي.
-      </div>
+    <div class="note no-print">
+      ملاحظة: إذا ظهر "غير مذكور في الشاهد" فهذا يعني أن النص المستخرج لا يحتوي دليل واضح على هذا البند.
     </div>
 
-    <div class="footer">
-      <div>
-        توقيع قائد المدرسة:<br><br>
-        .........................................
-      </div>
-      <div>
-        ختم المدرسة
-      </div>
+    <div style="display:flex; justify-content:space-between; margin-top:12px;">
+      <div class="small">توقيع قائد المدرسة</div>
+      <div class="small">ختم المدرسة</div>
     </div>
-
-    <div class="actions">
-      <button class="btn" onclick="window.print()">تحميل PDF</button>
-    </div>
-
   </div>
-</div>
-
 </body>
 </html>
