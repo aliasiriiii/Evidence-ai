@@ -4,17 +4,17 @@ import time
 import base64
 import datetime
 import json
-import re
 import requests
 from PIL import Image
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
+# ===== مفاتيح البيئة =====
 OCR_API_KEY = (os.environ.get("OCR_SPACE_KEY") or "").strip()
 OPENAI_API_KEY = (os.environ.get("OPENAI_API_KEY") or "").strip()
 
-# Defaults (ثابتة لو تركتها فاضية)
+# ===== افتراضيات ثابتة (لو تركت الحقول فاضية) =====
 DEFAULT_TEACHER = "علي عسيري"
 DEFAULT_SCHOOL = "ثانوية الظهران"
 DEFAULT_PRINCIPAL = "أحمد الشمراني"
@@ -24,9 +24,14 @@ DEFAULT_PRINCIPAL = "أحمد الشمراني"
 # Helpers
 # -----------------------------
 def compress_image(file_storage, max_w=1600, quality=75):
+    """
+    يقلل حجم الصورة قبل إرسالها لـ OCR.space عشان السرعة
+    يرجع (filename, bytes, mimetype)
+    """
     filename = file_storage.filename or "upload.jpg"
     img = Image.open(file_storage.stream)
 
+    # تحويل إلى RGB لو PNG فيها ألفا
     if img.mode in ("RGBA", "P"):
         img = img.convert("RGB")
 
@@ -41,7 +46,10 @@ def compress_image(file_storage, max_w=1600, quality=75):
     return filename, buf.getvalue(), "image/jpeg"
 
 
-def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=45):
+def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=60):
+    """
+    لا نرسل language لتجنب E201
+    """
     if not OCR_API_KEY:
         return "", "مفتاح OCR_SPACE_KEY غير موجود في Render Environment Variables"
 
@@ -81,7 +89,7 @@ def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=45):
         except Exception as e:
             last_err = f"خطأ اتصال/تحليل OCR: {e}"
 
-        time.sleep(0.8 * (attempt + 1))
+        time.sleep(1.0 * (attempt + 1))
 
     return "", last_err or "فشل OCR لسبب غير معروف"
 
@@ -94,74 +102,55 @@ def clean_text(t: str) -> str:
     return "\n".join(lines)
 
 
+def safe_one_line(s: str, fallback: str) -> str:
+    s = (s or "").strip()
+    s = " ".join(s.split())  # توحيد المسافات
+    return s if s else fallback
+
+
 def auto_program_desc_from_ocr(ocr_text: str) -> str:
     t = clean_text(ocr_text)
     if not t:
-        return ""
+        return "تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف."
     lines = t.splitlines()[:3]
     snippet = " ".join(lines)
+    snippet = safe_one_line(snippet, "الشاهد يشير إلى تنفيذ إجراء/نشاط تعليمي داخل البيئة الصفية.")
     return f"تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف. (ملخص من الشاهد: {snippet})"
-
-
-def _extract_json_safely(text: str) -> dict:
-    """
-    يحاول يطلع JSON حتى لو GPT رجّع كلام حوله.
-    """
-    if not text:
-        return {}
-
-    # أول محاولة: json.loads مباشر
-    try:
-        return json.loads(text)
-    except Exception:
-        pass
-
-    # محاولة ثانية: استخراج أول كتلة { ... }
-    m = re.search(r"\{[\s\S]*\}", text)
-    if m:
-        try:
-            return json.loads(m.group(0))
-        except Exception:
-            return {}
-
-    return {}
 
 
 def gpt_extract_fields(ocr_text: str, program_name: str, program_desc: str, subject: str) -> dict:
     """
     يرجع dict:
     goal, procedure, tech_tool, assessment, impact
-    * ما يخلي شيء فاضي
-    * إذا ما فيه دليل قوي -> يكتب (استنتاج محتمل) بصيغة رسمية
+    - سياسة: ما نترك فراغات
+    - يسمح بالاستنتاج المهني بصيغ (يُحتمل/يُرجّح/يُفهم) لو ما فيه نص كافي
     """
     base = {
-        "goal": "استنتاج محتمل: دعم عملية التعلم وتعزيز تحقق نواتج التعلم وفق محتوى الشاهد.",
-        "procedure": "استنتاج محتمل: تنفيذ نشاط/إجراء تعليمي موثق في الشاهد داخل الصف أو ضمن خطة الدرس.",
-        "tech_tool": "استنتاج محتمل: استخدام ورقة عمل/نموذج/مستند توثيقي، وقد تُستخدم وسيلة عرض عند الحاجة.",
-        "assessment": "استنتاج محتمل: متابعة أداء الطلاب عبر التحقق من الإجابات/التصحيح/رصد الدرجات حسب الشاهد.",
-        "impact": "استنتاج محتمل: تحسين انضباط التعلم ووضوح المطلوب للطلاب ورفع مستوى الإنجاز.",
+        "goal": "تعزيز تعلم الطلاب وتحسين الفهم داخل الصف.",
+        "procedure": "تنفيذ نشاط/شرح وتوجيهات داخل الصف وفق خطة درس مختصرة.",
+        "tech_tool": "استخدام وسائل تعليمية صفية شائعة (سبورة/عرض/أوراق عمل).",
+        "assessment": "متابعة الأداء عبر ملاحظة التفاعل والأسئلة والواجب/ورقة عمل.",
+        "impact": "رفع التفاعل وتحسين الاستيعاب وتحقيق نواتج تعلم أفضل.",
+        "_gpt_error": "",
     }
 
-    # لو ما فيه مفتاح GPT نخلي الاستنتاجات الافتراضية (بدون سقوط)
     if not OPENAI_API_KEY:
-        base["goal"] = "استنتاج محتمل: الشاهد يوثق إجراء تعليمي؛ لم يتم تفعيل GPT (OPENAI_API_KEY غير موجود)."
+        base["_gpt_error"] = "OPENAI_API_KEY غير موجود"
         return base
 
     ocr_short = (ocr_text or "").strip()
-    if len(ocr_short) > 5000:
-        ocr_short = ocr_short[:5000] + "..."
+    if len(ocr_short) > 4500:
+        ocr_short = ocr_short[:4500] + "..."
 
-    # ✅ هذا هو “البرومبت” اللي تعدله لو تبغى
+    # ✅ هذا هو “البرومبت” اللي تعدله مستقبلاً (هنا بالضبط)
     sys = (
-        "أنت خبير تقويم تربوي. لديك نص مستخرج OCR من شاهد تعليمي (قد يكون غير واضح). "
-        "مهمتك تعبئة 5 حقول بشكل احترافي ورسمي.\n\n"
-        "قواعد إلزامية:\n"
-        "1) ممنوع ترك أي قيمة فارغة.\n"
-        "2) إذا وجدت دليل صريح في النص: اكتب صياغة مؤكدة.\n"
-        "3) إذا الدليل غير صريح لكن يوجد تلميح/قرينة: اكتب (استنتاج محتمل: ...).\n"
-        "4) إذا لا توجد قرائن كافية إطلاقاً: اكتب (تقدير مهني عام: ...).\n"
-        "5) لا تذكر أنك نموذج ذكاء اصطناعي ولا تكتب أي شرح خارج JSON.\n"
-        "6) أعد JSON فقط بهذه المفاتيح: goal, procedure, tech_tool, assessment, impact."
+        "أنت خبير تقويم تربوي. أمامك نص مستخرج عبر OCR من صورة شاهد تربوي. "
+        "مهمتك: تعبئة حقول بطاقة الشاهد بشكل احترافي ومقنع. "
+        "إذا كان الدليل صريحاً في النص: اذكره مباشرة. "
+        "إذا كان النص ضعيفاً/غير واضح: استنتج استنتاجاً مهنياً محافظاً بصيغة (يُحتمل/يُرجّح/يُفهم) "
+        "ولا تختلق تفاصيل دقيقة (مثل أرقام/أسماء أدوات محددة) بدون قرينة. "
+        "ممنوع ترك أي حقل فارغ. "
+        "أرجع JSON فقط."
     )
 
     user = f"""
@@ -172,13 +161,14 @@ def gpt_extract_fields(ocr_text: str, program_name: str, program_desc: str, subj
 نص الشاهد (OCR):
 {ocr_short}
 
-أعد JSON بالمفاتيح فقط:
+أخرج JSON بهذه المفاتيح فقط:
 goal, procedure, tech_tool, assessment, impact
 
-شروط الصياغة:
-- كل قيمة سطر واحد رسمي (10-25 كلمة).
-- استخدم (استنتاج محتمل:) عند غياب الدليل الصريح مع وجود قرائن.
-- استخدم (تقدير مهني عام:) عند انعدام القرائن.
+قواعد الإخراج:
+- كل قيمة جملة واحدة رسمية (10 إلى 25 كلمة)
+- لا تستخدم كلمة "غير مذكور"
+- عند ضعف الدليل استخدم (يُحتمل/يُرجّح/يُفهم) بدل الجزم
+- ممنوع إضافة مفاتيح أخرى
 """
 
     try:
@@ -189,7 +179,7 @@ goal, procedure, tech_tool, assessment, impact
         }
         payload = {
             "model": "gpt-4o-mini",
-            "temperature": 0.3,
+            "temperature": 0.35,
             "messages": [
                 {"role": "system", "content": sys},
                 {"role": "user", "content": user},
@@ -200,20 +190,20 @@ goal, procedure, tech_tool, assessment, impact
         r = requests.post(url, headers=headers, json=payload, timeout=60)
         r.raise_for_status()
         data = r.json()
-        content = (data.get("choices", [{}])[0].get("message", {}) or {}).get("content", "") or ""
+        content = data["choices"][0]["message"]["content"]
 
-        j = _extract_json_safely(content)
+        j = json.loads(content)
 
-        # تعبئة آمنة بدون فراغات
-        for k in list(base.keys()):
-            v = (j.get(k) or "").strip()
-            if v:
-                base[k] = v
+        base["goal"] = safe_one_line(j.get("goal"), base["goal"])
+        base["procedure"] = safe_one_line(j.get("procedure"), base["procedure"])
+        base["tech_tool"] = safe_one_line(j.get("tech_tool"), base["tech_tool"])
+        base["assessment"] = safe_one_line(j.get("assessment"), base["assessment"])
+        base["impact"] = safe_one_line(j.get("impact"), base["impact"])
 
         return base
 
-    except Exception:
-        # لا نطيّح الصفحة — نرجع الاستنتاجات الافتراضية
+    except Exception as e:
+        base["_gpt_error"] = str(e)
         return base
 
 
@@ -269,7 +259,7 @@ def generate():
     combined_ocr = "\n".join([t for t in [ocr1_text, ocr2_text] if t]).strip()
 
     if not program_desc:
-        program_desc = auto_program_desc_from_ocr(combined_ocr) or "تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف."
+        program_desc = auto_program_desc_from_ocr(combined_ocr)
 
     if not program_name:
         program_name = "نشاط/برنامج تعليمي"
