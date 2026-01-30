@@ -1,66 +1,61 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>بطاقة توثيق شاهد</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto; background:#f5f7f6; margin:0; padding:18px;}
-    .wrap{max-width:980px; margin:0 auto; background:#fff; border:1px solid #e6e6e6; border-radius:12px; overflow:hidden;}
-    .hdr{background:#0f6d45; color:#fff; padding:14px 16px; text-align:center;}
-    .hdr .t1{font-weight:700;}
-    .hdr .t2{margin-top:4px; opacity:.95;}
-    .toolbar{display:flex; gap:10px; justify-content:flex-end; padding:12px 16px; border-bottom:1px solid #eee; background:#fbfbfb;}
-    .btn{padding:10px 12px; border-radius:10px; border:1px solid #d8d8d8; background:#fff; cursor:pointer; font-size:14px;}
-    .btn.primary{background:#0f6d45; border-color:#0f6d45; color:#fff;}
-    .content{padding:16px;}
-    table{width:100%; border-collapse:collapse; table-layout:fixed;}
-    th,td{border:1px solid #dcdcdc; padding:10px; vertical-align:top; font-size:14px;}
-    th{background:#e9f2ed; width:160px;}
-    .images{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;}
-    .ph{border:2px dashed #d7d7d7; border-radius:12px; min-height:200px; display:flex; align-items:center; justify-content:center; color:#666; background:#fafafa; padding:10px;}
-    .ph img{max-width:100%; max-height:260px; object-fit:contain; border-radius:10px;}
-    .sectionTitle{margin-top:14px; font-weight:700; color:#0f6d45;}
-    .note{font-size:12px; color:#666; margin-top:10px; line-height:1.6;}
-    .signRow{display:flex; justify-content:space-between; margin-top:14px; color:#333; font-size:13px;}
-    .signBox{width:48%; border-top:1px dashed #bbb; padding-top:8px; text-align:center;}
+    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f5f6f7; margin:0}
+    .wrap{max-width:980px;margin:18px auto;padding:14px}
+    .header{background:#166534;color:#fff;padding:14px;border-radius:12px;text-align:center}
+    .header h2{margin:0;font-size:18px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-top:12px}
+    table{width:100%;border-collapse:collapse}
+    td,th{border:1px solid #d1d5db;padding:10px;vertical-align:top}
+    th{background:#f0fdf4;color:#14532d;text-align:right;width:180px}
+    .btns{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+    .btn{background:#166534;color:#fff;border:0;border-radius:10px;padding:10px 12px;cursor:pointer}
+    .btn.gray{background:#374151}
+    .imgs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .imgbox{border:1px dashed #cbd5e1;border-radius:12px;min-height:220px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#fafafa}
+    .imgbox img{max-width:100%;max-height:320px;object-fit:contain}
+    .subttl{margin:10px 0 6px;font-weight:700;color:#14532d}
+    .note{font-size:12px;color:#6b7280;margin-top:10px}
 
-    /* ===== طباعة ===== */
+    /* --- طباعة صفحة واحدة قدر الإمكان --- */
     @media print{
-      body{background:#fff; padding:0; margin:0;}
-      .toolbar{display:none !important;}
-      .wrap{border:0; border-radius:0;}
-      .content{padding:10mm;}
-      /* محاولة حصرها في صفحة واحدة */
-      .wrap, .content {break-inside:avoid;}
-      table, tr, td, th {break-inside:avoid;}
-      .images, .ph {break-inside:avoid;}
-      /* تصغير بسيط للطباعة */
-      th, td {font-size:12px; padding:7px;}
-      .ph img{max-height:220px;}
+      body{background:#fff}
+      .wrap{margin:0;max-width:none;padding:0}
+      .btns{display:none !important}
+      .card{border:0;margin-top:6px}
+      .header{border-radius:0}
+      /* منع تقسيم العناصر */
+      table, .imgs, .card, .imgbox { page-break-inside: avoid; break-inside: avoid; }
+      /* محاولة تصغير لتدخل صفحة وحدة */
+      *{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .imgbox img{max-height:240px}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="hdr">
-      <div class="t1">الإدارة العامة للتعليم بالمنطقة الشرقية</div>
-      <div class="t2">مكتب التعليم - وزارة التعليم</div>
-      <div class="t2" style="margin-top:8px; font-weight:700;">بطاقة توثيق شاهد (OCR + GPT)</div>
+    <div class="header">
+      <h2>بطاقة توثيق شاهد (OCR + GPT)</h2>
+      <div style="font-size:12px;opacity:.9;margin-top:6px">الإدارة العامة للتعليم بالمنطقة الشرقية • وزارة التعليم</div>
     </div>
 
-    <div class="toolbar">
-      <button class="btn" onclick="history.back()">رجوع</button>
-      <button class="btn primary" onclick="window.print()">طباعة / حفظ PDF</button>
+    <div class="btns">
+      <button class="btn gray" onclick="window.location.href='/'">رجوع</button>
+      <button class="btn" onclick="window.print()">طباعة / حفظ PDF</button>
     </div>
 
-    <div class="content">
+    <div class="card">
       <table>
         <tr>
           <th>اسم المعلم</th>
           <td>{{ teacher }}</td>
           <th>التخصص</th>
-          <td>{{ subject or "—" }}</td>
+          <td>{{ subject or "-" }}</td>
         </tr>
         <tr>
           <th>المدرسة</th>
@@ -80,31 +75,25 @@
         </tr>
       </table>
 
-      <div class="sectionTitle">الصور</div>
-      <div class="images">
-        <div class="ph">
+      <div class="subttl">الصور</div>
+      <div class="imgs">
+        <div class="imgbox">
           {% if img1_url %}
-            <div style="width:100%;">
-              <div style="font-size:12px;color:#666;margin-bottom:6px;">(صورة 1)</div>
-              <img src="{{ img1_url }}" alt="صورة الشاهد 1">
-            </div>
+            <img src="{{ img1_url }}" alt="صورة 1"/>
           {% else %}
-            <div>(صورة 1) لم يتم رفع صورة</div>
+            <div style="color:#6b7280">لم يتم رفع صورة</div>
           {% endif %}
         </div>
-        <div class="ph">
+        <div class="imgbox">
           {% if img2_url %}
-            <div style="width:100%;">
-              <div style="font-size:12px;color:#666;margin-bottom:6px;">(صورة 2)</div>
-              <img src="{{ img2_url }}" alt="صورة الشاهد 2">
-            </div>
+            <img src="{{ img2_url }}" alt="صورة 2"/>
           {% else %}
-            <div>(صورة 2) لم يتم رفع صورة</div>
+            <div style="color:#6b7280">لم يتم رفع صورة</div>
           {% endif %}
         </div>
       </div>
 
-      <div class="sectionTitle">ملخص الشاهد (OCR + GPT)</div>
+      <div class="subttl">ملخص الشاهد (OCR + GPT)</div>
       <table>
         <tr>
           <th>الهدف</th>
@@ -128,17 +117,15 @@
         </tr>
       </table>
 
-      <div class="note">
-        ملاحظة: تم توليد الملخص بالذكاء الاصطناعي بناءً على نص OCR وما يظهر من قرائن، بصياغة مهنية محافظة.
-        {% if gpt._gpt_error %}
-          <br><b>تنبيه تقني:</b> {{ gpt._gpt_error }}
-        {% endif %}
-      </div>
+      <div class="note">{{ note_footer }}</div>
 
-      <div class="signRow">
-        <div class="signBox">ختم المدرسة</div>
-        <div class="signBox">توقيع قائد المدرسة</div>
+      {% if ocr1_err or ocr2_err or gpt._gpt_error %}
+      <div class="note" style="margin-top:8px">
+        {% if ocr1_err %}تنبيه OCR (صورة 1): {{ ocr1_err }}<br>{% endif %}
+        {% if ocr2_err %}تنبيه OCR (صورة 2): {{ ocr2_err }}<br>{% endif %}
+        {% if gpt._gpt_error %}تنبيه GPT: {{ gpt._gpt_error }}{% endif %}
       </div>
+      {% endif %}
     </div>
   </div>
 </body>
