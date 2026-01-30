@@ -1,166 +1,85 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>منصة توثيق الشواهد التعليمية</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
-    body{
-      font-family: Tahoma, Arial, sans-serif;
-      background:#f4f6f5;
-      margin:0;
-      padding:0;
-      color:#1f2a24;
-    }
-    .page{
-      max-width:900px;
-      margin:30px auto;
-      background:#fff;
-      border:1px solid #cfd8d3;
-      box-shadow:0 6px 20px rgba(0,0,0,.08);
-      padding:20px;
-    }
-    h1{
-      margin:0 0 10px;
-      color:#2f6b57;
-      font-size:22px;
-      text-align:center;
-    }
-    p.sub{
-      text-align:center;
-      margin:0 0 20px;
-      color:#555;
-      font-size:14px;
-    }
-
-    .section{
-      background:#e9f2ee;
-      color:#2f6b57;
-      font-weight:bold;
-      padding:8px 12px;
-      border:1px solid #cfd8d3;
-      margin:18px 0 10px;
-    }
-
-    label{
-      display:block;
-      margin-bottom:6px;
-      font-size:14px;
-      color:#333;
-    }
-    input[type="text"], textarea{
-      width:100%;
-      padding:8px 10px;
-      font-size:14px;
-      border:1px solid #cfd8d3;
-      border-radius:6px;
-      margin-bottom:12px;
-    }
-    textarea{
-      min-height:70px;
-      resize:vertical;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-    }
-
-    .upload{
-      border:2px dashed #b7c7c0;
-      padding:14px;
-      text-align:center;
-      border-radius:8px;
-      background:#fafbfa;
-      font-size:14px;
-      color:#555;
-    }
-    .upload input{
-      margin-top:8px;
-    }
-
-    .btn{
-      display:block;
-      width:100%;
-      background:#2f6b57;
-      color:#fff;
-      border:none;
-      padding:12px;
-      font-size:16px;
-      font-weight:bold;
-      border-radius:8px;
-      cursor:pointer;
-      margin-top:20px;
-    }
-
-    .note{
-      margin-top:14px;
-      font-size:12px;
-      color:#666;
-      text-align:center;
-    }
-
-    @media(max-width:700px){
-      .grid{grid-template-columns:1fr;}
-    }
+    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f7f7f7; margin:0;}
+    .wrap{max-width:980px; margin:24px auto; background:#fff; padding:18px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.06)}
+    h1{margin:6px 0 14px; font-size:20px}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    label{font-size:13px; color:#333}
+    input, textarea{width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:14px; background:#fff}
+    textarea{min-height:90px; resize:vertical}
+    .sec{margin-top:14px; padding-top:12px; border-top:1px dashed #ddd}
+    .btn{background:#1f7a4d; color:#fff; border:none; padding:12px 16px; border-radius:10px; font-size:15px; cursor:pointer}
+    .hint{font-size:12px; color:#666; margin-top:6px}
+    @media (max-width:760px){.grid{grid-template-columns:1fr}}
   </style>
 </head>
-
 <body>
+  <div class="wrap">
+    <h1>منصة توثيق الشواهد التعليمية</h1>
+    <div class="hint">ارفع الشاهد (صورة)، وسيتم استخراج النص وتحليله تلقائياً (OCR + GPT) ثم تجهيز بطاقة جاهزة للطباعة.</div>
 
-<div class="page">
-  <h1>منصة توثيق الشواهد التعليمية</h1>
-  <p class="sub">
-    ارفع الشاهد (صورة) وسيتم تحليلها تلقائيًا وإعداد بطاقة توثيق رسمية
-  </p>
-
-  <form method="post" action="/generate" enctype="multipart/form-data">
-
-    <div class="section">بيانات المعلم</div>
-
-    <label>اسم المعلم</label>
-    <input type="text" name="teacher" placeholder="مثال: علي عبدالله عسيري">
-
-    <label>التخصص</label>
-    <input type="text" name="subject" placeholder="مثال: فيزياء">
-
-    <label>المدرسة</label>
-    <input type="text" name="school" placeholder="مثال: ثانوية الظهران الحكومية">
-
-    <label>قائد المدرسة</label>
-    <input type="text" name="principal" placeholder="مثال: راشد سعيد القحطاني">
-
-    <div class="section">الشاهد (الصور)</div>
-
-    <div class="grid">
-      <div class="upload">
-        صورة الشاهد (1)
-        <input type="file" name="image1" accept="image/*">
+    <form action="/generate" method="post" enctype="multipart/form-data">
+      <div class="sec">
+        <h3 style="margin:0 0 10px;font-size:16px">بيانات المعلم</h3>
+        <div class="grid">
+          <div>
+            <label>اسم المعلم</label>
+            <input name="teacher" placeholder="مثال: {{default_teacher}}" />
+          </div>
+          <div>
+            <label>التخصص</label>
+            <input name="subject" placeholder="مثال: فيزياء" />
+          </div>
+          <div>
+            <label>المدرسة</label>
+            <input name="school" placeholder="مثال: {{default_school}}" />
+          </div>
+          <div>
+            <label>قائد المدرسة</label>
+            <input name="principal" placeholder="مثال: {{default_principal}}" />
+          </div>
+        </div>
+        <div class="hint">لو تركت (الاسم/المدرسة/المدير) فاضية → تنحط تلقائياً.</div>
       </div>
-      <div class="upload">
-        صورة الشاهد (2)
-        <input type="file" name="image2" accept="image/*">
+
+      <div class="sec">
+        <h3 style="margin:0 0 10px;font-size:16px">الشاهد (الصور)</h3>
+        <div class="grid">
+          <div>
+            <label>صورة الشاهد (1)</label>
+            <input type="file" name="image1" accept="image/*" />
+          </div>
+          <div>
+            <label>صورة الشاهد (2) (اختياري)</label>
+            <input type="file" name="image2" accept="image/*" />
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="section">بيانات البرنامج (اختياري)</div>
+      <div class="sec">
+        <h3 style="margin:0 0 10px;font-size:16px">بيانات البرنامج (اختياري)</h3>
+        <div class="grid">
+          <div>
+            <label>اسم البرنامج / النشاط</label>
+            <input name="program_name" placeholder="نشاط/برنامج تعليمي" />
+          </div>
+          <div>
+            <label>وصف البرنامج</label>
+            <textarea name="program_desc" placeholder="إذا تركته فاضي، النظام يولّد وصف مختصر تلقائياً من الشاهد"></textarea>
+          </div>
+        </div>
+      </div>
 
-    <label>اسم البرنامج / النشاط</label>
-    <input type="text" name="program_name" placeholder="يُترك فارغ ليولده النظام تلقائيًا">
-
-    <label>وصف البرنامج</label>
-    <textarea name="program_desc" placeholder="يُترك فارغ ليولده النظام تلقائيًا"></textarea>
-
-    <button type="submit" class="btn">إنشاء بطاقة التوثيق</button>
-
-  </form>
-
-  <div class="note">
-    * يتم توليد الوصف والملخص التربوي تلقائيًا بالاعتماد على OCR + GPT
+      <div class="sec" style="display:flex; gap:10px; align-items:center; justify-content:flex-start">
+        <button class="btn" type="submit">تحليل وإعداد البطاقة</button>
+        <div class="hint">تاريخ اليوم: {{today}}</div>
+      </div>
+    </form>
   </div>
-</div>
-
 </body>
 </html>
