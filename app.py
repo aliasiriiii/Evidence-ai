@@ -14,7 +14,7 @@ app = Flask(__name__)
 OCR_API_KEY = (os.environ.get("OCR_SPACE_KEY") or "").strip()
 OPENAI_API_KEY = (os.environ.get("OPENAI_API_KEY") or "").strip()
 
-client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+client = OpenAI() if OPENAI_API_KEY else None
 
 
 # -----------------------------
