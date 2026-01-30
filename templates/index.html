@@ -2,83 +2,83 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>منصة توثيق الشواهد التعليمية</title>
   <style>
-    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f7f7f7; margin:0;}
-    .wrap{max-width:980px; margin:24px auto; background:#fff; padding:18px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,.06)}
-    h1{margin:6px 0 14px; font-size:20px}
-    .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-    label{font-size:13px; color:#333}
-    input, textarea{width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:14px; background:#fff}
-    textarea{min-height:90px; resize:vertical}
-    .sec{margin-top:14px; padding-top:12px; border-top:1px dashed #ddd}
-    .btn{background:#1f7a4d; color:#fff; border:none; padding:12px 16px; border-radius:10px; font-size:15px; cursor:pointer}
-    .hint{font-size:12px; color:#666; margin-top:6px}
-    @media (max-width:760px){.grid{grid-template-columns:1fr}}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto; background:#f5f7f6; margin:0; padding:20px;}
+    .wrap{max-width:980px; margin:0 auto; background:#fff; border:1px solid #e6e6e6; border-radius:12px; padding:18px;}
+    h1{margin:0 0 6px; font-size:20px;}
+    .sub{color:#555; margin:0 0 16px;}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+    label{font-size:13px; color:#222; display:block; margin-bottom:6px;}
+    input, textarea{width:100%; padding:10px; border:1px solid #d7d7d7; border-radius:10px; font-size:14px;}
+    textarea{min-height:80px; resize:vertical;}
+    .section{margin-top:14px; padding-top:14px; border-top:1px dashed #ddd;}
+    .btn{margin-top:14px; width:100%; padding:12px; border:0; border-radius:12px; background:#0f6d45; color:#fff; font-size:16px;}
+    .muted{color:#777; font-size:12px; margin-top:8px;}
+    @media (max-width:800px){ .grid{grid-template-columns:1fr;} }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>منصة توثيق الشواهد التعليمية</h1>
-    <div class="hint">ارفع الشاهد (صورة)، وسيتم استخراج النص وتحليله تلقائياً (OCR + GPT) ثم تجهيز بطاقة جاهزة للطباعة.</div>
+    <p class="sub">ارفع الشاهد (صورة) وسيتم توليد بطاقة توثيق (OCR + GPT).</p>
 
     <form action="/generate" method="post" enctype="multipart/form-data">
-      <div class="sec">
-        <h3 style="margin:0 0 10px;font-size:16px">بيانات المعلم</h3>
-        <div class="grid">
-          <div>
-            <label>اسم المعلم</label>
-            <input name="teacher" placeholder="مثال: {{default_teacher}}" />
-          </div>
-          <div>
-            <label>التخصص</label>
-            <input name="subject" placeholder="مثال: فيزياء" />
-          </div>
-          <div>
-            <label>المدرسة</label>
-            <input name="school" placeholder="مثال: {{default_school}}" />
-          </div>
-          <div>
-            <label>قائد المدرسة</label>
-            <input name="principal" placeholder="مثال: {{default_principal}}" />
-          </div>
+      <div class="grid">
+        <div>
+          <label>اسم المعلم</label>
+          <input name="teacher" placeholder="مثال: علي عبدالله عسيري" value="{{ default_teacher }}">
         </div>
-        <div class="hint">لو تركت (الاسم/المدرسة/المدير) فاضية → تنحط تلقائياً.</div>
+        <div>
+          <label>التخصص</label>
+          <input name="subject" placeholder="مثال: فيزياء">
+        </div>
+
+        <div>
+          <label>المدرسة</label>
+          <input name="school" placeholder="مثال: ثانوية الظهران" value="{{ default_school }}">
+        </div>
+        <div>
+          <label>قائد المدرسة</label>
+          <input name="principal" placeholder="مثال: أحمد الشمراني" value="{{ default_principal }}">
+        </div>
+
+        <div>
+          <label>التاريخ (تلقائي)</label>
+          <input value="{{ today }}" disabled>
+        </div>
+        <div></div>
       </div>
 
-      <div class="sec">
-        <h3 style="margin:0 0 10px;font-size:16px">الشاهد (الصور)</h3>
+      <div class="section">
         <div class="grid">
           <div>
             <label>صورة الشاهد (1)</label>
-            <input type="file" name="image1" accept="image/*" />
+            <input type="file" name="image1" accept="image/*">
           </div>
           <div>
             <label>صورة الشاهد (2) (اختياري)</label>
-            <input type="file" name="image2" accept="image/*" />
+            <input type="file" name="image2" accept="image/*">
           </div>
         </div>
       </div>
 
-      <div class="sec">
-        <h3 style="margin:0 0 10px;font-size:16px">بيانات البرنامج (اختياري)</h3>
+      <div class="section">
         <div class="grid">
           <div>
-            <label>اسم البرنامج / النشاط</label>
-            <input name="program_name" placeholder="نشاط/برنامج تعليمي" />
+            <label>اسم البرنامج/النشاط (اختياري)</label>
+            <input name="program_name" placeholder="نشاط/برنامج تعليمي">
           </div>
           <div>
-            <label>وصف البرنامج</label>
-            <textarea name="program_desc" placeholder="إذا تركته فاضي، النظام يولّد وصف مختصر تلقائياً من الشاهد"></textarea>
+            <label>وصف البرنامج (اختياري)</label>
+            <input name="program_desc" placeholder="اتركها فارغة ليتم توليد وصف تلقائي من الشاهد">
           </div>
         </div>
+        <p class="muted">ملاحظة: لو تركت الحقول فاضية، النظام بيحط قيم افتراضية ويكمل البطاقة بدون فراغات.</p>
       </div>
 
-      <div class="sec" style="display:flex; gap:10px; align-items:center; justify-content:flex-start">
-        <button class="btn" type="submit">تحليل وإعداد البطاقة</button>
-        <div class="hint">تاريخ اليوم: {{today}}</div>
-      </div>
+      <button class="btn" type="submit">تحليل الشاهد وإصدار البطاقة</button>
     </form>
   </div>
 </body>
