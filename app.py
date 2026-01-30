@@ -1,67 +1,21 @@
 import os
 import io
 import time
-import base64
 import json
-import logging
-from datetime import datetime
-
+import base64
 import requests
 from PIL import Image
 from flask import Flask, render_template, request
 
-# OpenAI SDK (v1+)
-from openai import OpenAI
-
-# -----------------------------
-# App + Logging
-# -----------------------------
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger("evidence-ai")
 
 OCR_API_KEY = os.environ.get("OCR_SPACE_KEY", "").strip()
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
 
 # -----------------------------
-# Constants: MoE rubric (11 items)
-# (تصنيف محافظ: نطلع عنصرين فقط إذا في دليل واضح)
-# -----------------------------
-RUBRIC_11 = [
-    "أداء الواجبات الوظيفية",
-    "التفاعل مع المجتمع المحلي",
-    "التفاعل مع أولياء الأمور",
-    "تنويع استراتيجيات التدريس",
-    "تحسين نواتج المتعلمين",
-    "إعداد وتنفيذ خطة الدرس",
-    "توظيف التقنيات والوسائل التعليمية",
-    "تهيئة البيئة التعليمية",
-    "ضبط سلوك الطلاب",
-    "تحليل نتائج المتعلمين وتشخيص مستواهم",
-    "تنوع أساليب التقويم",
-]
-
-# -----------------------------
 # Helpers
 # -----------------------------
-def get_openai_client():
-    if not OPENAI_API_KEY:
-        return None
-    # بدون أي arguments إضافية عشان ما يطلع خطأ Client.__init__()
-    return OpenAI(api_key=OPENAI_API_KEY)
-
-def clean_text(t: str) -> str:
-    if not t:
-        return ""
-    lines = [ln.strip() for ln in t.splitlines()]
-    lines = [ln for ln in lines if ln]
-    return "\n".join(lines).strip()
-
-def compress_image(file_storage, max_w=1600, quality=78):
-    """
-    يقلل حجم الصورة قبل OCR.space
-    يرجع: (filename, bytes, mimetype)
-    """
+def compress_image(file_storage, max_w=1600, quality=75):
     filename = file_storage.filename or "upload.jpg"
     img = Image.open(file_storage.stream)
 
@@ -78,10 +32,8 @@ def compress_image(file_storage, max_w=1600, quality=78):
     buf.seek(0)
     return filename, buf.getvalue(), "image/jpeg"
 
-def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=35):
-    """
-    حل مشكلة E201: لا نرسل language نهائياً
-    """
+
+def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=30):
     if not OCR_API_KEY:
         return "", "مفتاح OCR_SPACE_KEY غير موجود في Render Environment Variables"
 
@@ -91,7 +43,7 @@ def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=35):
         "isOverlayRequired": "false",
         "OCREngine": "2",
         "scale": "true",
-        # لا نرسل language لتجنب E201
+        # لا نرسل language نهائياً لتجنب E201
     }
     files = {"filename": (filename, image_bytes, "image/jpeg")}
 
@@ -114,9 +66,8 @@ def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=35):
             if not parsed:
                 return "", "OCR رجّع نتيجة فاضية"
 
-            text = parsed[0].get("ParsedText", "") or ""
-            return text.strip(), ""
-
+            text = (parsed[0].get("ParsedText") or "").strip()
+            return text, ""
         except requests.exceptions.Timeout:
             last_err = "انتهت مهلة الاتصال مع OCR.space (Timeout)"
         except Exception as e:
@@ -126,150 +77,87 @@ def ocr_space(image_bytes, filename="image.jpg", retries=2, timeout=35):
 
     return "", last_err or "فشل OCR لسبب غير معروف"
 
-def auto_description_from_ocr(ocr_text: str) -> str:
-    """
-    fallback بدون GPT
-    """
-    t = clean_text(ocr_text)
+
+def clean_text(t: str) -> str:
     if not t:
-        return "تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف."
-    lines = t.splitlines()[:3]
-    snippet = " ".join(lines)
-    return f"تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف. (ملخص من الشاهد: {snippet})"
+        return ""
+    lines = [ln.strip() for ln in t.splitlines()]
+    lines = [ln for ln in lines if ln]
+    return "\n".join(lines)
 
-# -----------------------------
-# GPT: Evidence + Blocks + Rubric mapping (محافظ)
-# -----------------------------
-def gpt_make_evidence(program_hint: str, ocr_text: str):
-    """
-    GPT يصيغ:
-    - program_name
-    - program_desc (سطر/سطرين مناسب للبطاقة)
-    - blocks: goal/implementation/tools/assessment/impact
-    - rubric_top2: [{name, reason}] أو "غير محدد"
-    """
-    if not OPENAI_API_KEY:
-        return "", "", {}, [], "OPENAI_API_KEY غير موجود في Render Environment"
 
-    client = get_openai_client()
-    if client is None:
-        return "", "", {}, [], "OPENAI_API_KEY غير موجود"
+def evidence_prompt(ocr_text: str) -> str:
+    return f"""
+أنت خبير تقويم تربوي في وزارة التعليم.
 
-    ocr_text = clean_text(ocr_text)
+استخرج من نص الشاهد التالي العناصر الخمسة التالية إن وُجدت، وإن لم تُذكر صراحة فاستنتجها استنتاجًا تربويًا منطقيًا دون مبالغة:
 
-    # fallback إذا OCR فاضي
-    if not ocr_text:
-        blocks = {
-            "goal": "غير مذكور في الشاهد",
-            "implementation": "غير مذكور في الشاهد",
-            "tools": "غير مذكور في الشاهد",
-            "assessment": "غير مذكور في الشاهد",
-            "impact": "غير مذكور في الشاهد",
-        }
-        rubric_top2 = []
-        program_name = program_hint.strip() or "نشاط/برنامج تعليمي"
-        program_desc = "تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف."
-        return program_name, program_desc, blocks, rubric_top2, ""
+- الهدف
+- الإجراء/التنفيذ
+- الأداة/التقنية
+- أسلوب التقويم
+- الأثر على المتعلمين
 
-    rubric_list = "\n- " + "\n- ".join(RUBRIC_11)
+أخرج النتيجة بصيغة JSON فقط، بدون شرح، وبدون أي نص إضافي:
 
-    prompt = f"""
-أنت مساعد تربوي سعودي تكتب بطاقة توثيق (شاهد تربوي) رسمي ودقيق.
-
-قواعد صارمة:
-1) ممنوع اختلاق أي معلومة غير موجودة في نص الشاهد.
-2) إذا لم تتوفر معلومة: اكتب حرفيًا "غير مذكور في الشاهد".
-3) اكتب بالعربية الرسمية المختصرة (أسلوب وزارة التعليم).
-4) المطلوب إخراج JSON فقط (بدون أي كلام خارج JSON).
-5) تصنيف عناصر الأداء الوظيفي: اختر "حد أقصى عنصرين فقط" من القائمة، بشرط وجود دليل واضح داخل النص. إذا ما فيه دليل كافي اترك القائمة فارغة [].
-
-قائمة عناصر الأداء (اختر منها فقط):
-{rubric_list}
-
-ملاحظة اسم النشاط المقترح (اختياري): {program_hint}
-
-نص الشاهد (OCR):
-\"\"\"{ocr_text[:3500]}\"\"\"
-
-أخرج JSON بالمفاتيح التالية فقط:
 {{
-  "program_name": "...",
-  "program_desc": "...",
-  "goal": "...",
-  "implementation": "...",
-  "tools": "...",
-  "assessment": "...",
-  "impact": "...",
-  "rubric_top2": [
-    {{"name": "اسم عنصر من القائمة", "reason": "سبب مختصر من النص"}},
-    {{"name": "اسم عنصر من القائمة", "reason": "سبب مختصر من النص"}}
-  ]
+  "goal": "",
+  "procedure": "",
+  "tool": "",
+  "assessment": "",
+  "impact": ""
 }}
-"""
+
+نص الشاهد:
+{ocr_text}
+""".strip()
+
+
+def call_openai_json(prompt: str, timeout=45):
+    if not OPENAI_API_KEY:
+        return "", "مفتاح OPENAI_API_KEY غير موجود في Render Environment Variables"
+
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [
+            {"role": "system", "content": "أنت مساعد تربوي متخصص في تقويم الشواهد."},
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.2,
+    }
 
     try:
-        resp = client.chat.completions.create(
-            model="gpt-4o-mini",
-            temperature=0.2,
-            messages=[
-                {"role": "system", "content": "التزم بإخراج JSON فقط دون أي شرح."},
-                {"role": "user", "content": prompt},
-            ],
-            response_format={"type": "json_object"},
-        )
-
-        content = resp.choices[0].message.content or "{}"
-        data = json.loads(content)
-
-        program_name = (data.get("program_name") or "").strip()
-        program_desc = (data.get("program_desc") or "").strip()
-
-        blocks = {
-            "goal": (data.get("goal") or "").strip(),
-            "implementation": (data.get("implementation") or "").strip(),
-            "tools": (data.get("tools") or "").strip(),
-            "assessment": (data.get("assessment") or "").strip(),
-            "impact": (data.get("impact") or "").strip(),
-        }
-
-        rubric_top2 = data.get("rubric_top2") or []
-        if not isinstance(rubric_top2, list):
-            rubric_top2 = []
-
-        # حمايات
-        if not program_name:
-            program_name = program_hint.strip() or "نشاط/برنامج تعليمي"
-        if not program_desc:
-            program_desc = "تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف."
-
-        for k in list(blocks.keys()):
-            if not blocks[k]:
-                blocks[k] = "غير مذكور في الشاهد"
-
-        # فلترة rubric: لازم يكون من القائمة فقط
-        filtered = []
-        for item in rubric_top2[:2]:
-            if isinstance(item, dict):
-                nm = (item.get("name") or "").strip()
-                rs = (item.get("reason") or "").strip()
-                if nm in RUBRIC_11:
-                    filtered.append({"name": nm, "reason": rs or "غير مذكور في الشاهد"})
-        rubric_top2 = filtered
-
-        return program_name, program_desc, blocks, rubric_top2, ""
-
+        r = requests.post(url, headers=headers, json=payload, timeout=timeout)
+        r.raise_for_status()
+        data = r.json()
+        text = data["choices"][0]["message"]["content"].strip()
+        return text, ""
     except Exception as e:
-        log.exception("GPT error")
-        program_name = program_hint.strip() or "نشاط/برنامج تعليمي"
-        program_desc = auto_description_from_ocr(ocr_text)
-        blocks = {
-            "goal": "غير مذكور في الشاهد",
-            "implementation": "غير مذكور في الشاهد",
-            "tools": "غير مذكور في الشاهد",
-            "assessment": "غير مذكور في الشاهد",
-            "impact": "غير مذكور في الشاهد",
-        }
-        return program_name, program_desc, blocks, [], f"تعذر توليد GPT بسبب خطأ: {e}"
+        return "", f"فشل GPT: {e}"
+
+
+def parse_gpt_fields(gpt_output: str):
+    try:
+        # أحيانًا يرجع داخل ```json ... ```
+        gpt_output = gpt_output.strip()
+        gpt_output = gpt_output.replace("```json", "").replace("```", "").strip()
+
+        data = json.loads(gpt_output)
+        return (
+            (data.get("goal") or "").strip(),
+            (data.get("procedure") or "").strip(),
+            (data.get("tool") or "").strip(),
+            (data.get("assessment") or "").strip(),
+            (data.get("impact") or "").strip(),
+        )
+    except Exception:
+        return "", "", "", "", ""
+
 
 # -----------------------------
 # Routes
@@ -278,17 +166,15 @@ def gpt_make_evidence(program_hint: str, ocr_text: str):
 def index():
     return render_template("index.html")
 
+
 @app.route("/generate", methods=["POST"])
 def generate():
     teacher = (request.form.get("teacher") or "").strip()
     subject = (request.form.get("subject") or "").strip()
     school = (request.form.get("school") or "").strip()
     principal = (request.form.get("principal") or "").strip()
-    program_hint = (request.form.get("program_hint") or "").strip()
-    date_str = (request.form.get("date") or "").strip()
-
-    if not date_str:
-        date_str = datetime.now().strftime("%Y/%m/%d")
+    program_name = (request.form.get("program_name") or "").strip()
+    program_desc = (request.form.get("program_desc") or "").strip()
 
     img1 = request.files.get("image1")
     img2 = request.files.get("image2")
@@ -299,7 +185,6 @@ def generate():
     ocr1_text, ocr1_err = "", ""
     ocr2_text, ocr2_err = "", ""
 
-    # OCR + embed images as base64
     if img1 and img1.filename:
         fn, bts, mt = compress_image(img1)
         img1_url = f"data:{mt};base64," + base64.b64encode(bts).decode("utf-8")
@@ -315,14 +200,27 @@ def generate():
 
     combined_ocr = "\n".join([t for t in [ocr1_text, ocr2_text] if t]).strip()
 
-    # GPT: اسم النشاط + وصف + عناصر + rubric
-    program_name, program_desc, gpt_blocks, rubric_top2, gpt_err = gpt_make_evidence(
-        program_hint, combined_ocr
-    )
+    # GPT استخراج عناصر الملخص
+    goal = procedure = tool = assessment = impact = ""
+    gpt_raw = ""
+    gpt_err = ""
 
-    # إذا GPT فشل وطلع desc فاضي لأي سبب
+    if combined_ocr:
+        gpt_raw, gpt_err = call_openai_json(evidence_prompt(combined_ocr))
+        goal, procedure, tool, assessment, impact = parse_gpt_fields(gpt_raw)
+
+    # fallback لو ما خرج شيء
+    if not goal: goal = "غير مذكور في الشاهد"
+    if not procedure: procedure = "غير مذكور في الشاهد"
+    if not tool: tool = "غير مذكور في الشاهد"
+    if not assessment: assessment = "غير مذكور في الشاهد"
+    if not impact: impact = "غير مذكور في الشاهد"
+
+    if not program_name:
+        program_name = "نشاط/برنامج تعليمي"
+
     if not program_desc:
-        program_desc = auto_description_from_ocr(combined_ocr)
+        program_desc = "تم تنفيذ نشاط/برنامج تعليمي داعم لعملية التعلم داخل الصف."
 
     return render_template(
         "result.html",
@@ -330,7 +228,6 @@ def generate():
         subject=subject,
         school=school,
         principal=principal,
-        date_str=date_str,
         program_name=program_name,
         program_desc=program_desc,
         img1_url=img1_url,
@@ -339,14 +236,20 @@ def generate():
         ocr2_text=ocr2_text,
         ocr1_err=ocr1_err,
         ocr2_err=ocr2_err,
-        gpt_blocks=gpt_blocks,
-        rubric_top2=rubric_top2,
+        goal=goal,
+        procedure=procedure,
+        tool=tool,
+        assessment=assessment,
+        impact=impact,
         gpt_err=gpt_err,
+        gpt_raw=gpt_raw,
     )
+
 
 @app.get("/health")
 def health():
     return {"ok": True}
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
