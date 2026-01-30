@@ -2,84 +2,103 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>منصة توثيق الشواهد التعليمية</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto; background:#f5f7f6; margin:0; padding:20px;}
-    .wrap{max-width:980px; margin:0 auto; background:#fff; border:1px solid #e6e6e6; border-radius:12px; padding:18px;}
-    h1{margin:0 0 6px; font-size:20px;}
-    .sub{color:#555; margin:0 0 16px;}
-    .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-    label{font-size:13px; color:#222; display:block; margin-bottom:6px;}
-    input, textarea{width:100%; padding:10px; border:1px solid #d7d7d7; border-radius:10px; font-size:14px;}
-    textarea{min-height:80px; resize:vertical;}
-    .section{margin-top:14px; padding-top:14px; border-top:1px dashed #ddd;}
-    .btn{margin-top:14px; width:100%; padding:12px; border:0; border-radius:12px; background:#0f6d45; color:#fff; font-size:16px;}
-    .muted{color:#777; font-size:12px; margin-top:8px;}
-    @media (max-width:800px){ .grid{grid-template-columns:1fr;} }
+    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f5f6f7; margin:0}
+    .wrap{max-width:980px;margin:18px auto;padding:14px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px}
+    h1{margin:0 0 6px;font-size:20px}
+    .sub{color:#6b7280;margin:0 0 14px;font-size:13px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{font-size:13px;color:#111827;display:block;margin-bottom:6px}
+    input,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;font-size:14px}
+    textarea{min-height:80px;resize:vertical}
+    .row{margin-top:12px}
+    .files{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{background:#166534;color:#fff;border:0;border-radius:10px;padding:12px 14px;font-size:15px;cursor:pointer;width:100%}
+    .hint{font-size:12px;color:#6b7280;margin-top:6px}
+    .loading{display:none;margin-top:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px;color:#166534;font-size:13px}
+    .bar{height:8px;background:#dcfce7;border-radius:999px;overflow:hidden;margin-top:8px}
+    .bar > div{height:8px;background:#16a34a;width:40%;border-radius:999px;animation: move 1.1s infinite ease-in-out}
+    @keyframes move{0%{transform:translateX(-120%)}100%{transform:translateX(280%)}}
+    @media (max-width:800px){.grid,.files{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>منصة توثيق الشواهد التعليمية</h1>
-    <p class="sub">ارفع الشاهد (صورة) وسيتم توليد بطاقة توثيق (OCR + GPT).</p>
+    <div class="card">
+      <h1>منصة توثيق الشواهد التعليمية</h1>
+      <p class="sub">ارفع الشاهد (صورة/صورتين)، وسيتم استخراج النص OCR ثم تعبئة بطاقة الشاهد تلقائياً عبر GPT.</p>
 
-    <form action="/generate" method="post" enctype="multipart/form-data">
-      <div class="grid">
-        <div>
-          <label>اسم المعلم</label>
-          <input name="teacher" placeholder="مثال: علي عبدالله عسيري" value="{{ default_teacher }}">
-        </div>
-        <div>
-          <label>التخصص</label>
-          <input name="subject" placeholder="مثال: فيزياء">
-        </div>
-
-        <div>
-          <label>المدرسة</label>
-          <input name="school" placeholder="مثال: ثانوية الظهران" value="{{ default_school }}">
-        </div>
-        <div>
-          <label>قائد المدرسة</label>
-          <input name="principal" placeholder="مثال: أحمد الشمراني" value="{{ default_principal }}">
-        </div>
-
-        <div>
-          <label>التاريخ (تلقائي)</label>
-          <input value="{{ today }}" disabled>
-        </div>
-        <div></div>
-      </div>
-
-      <div class="section">
+      <form id="f" action="/generate" method="post" enctype="multipart/form-data">
         <div class="grid">
+          <div>
+            <label>اسم المعلم</label>
+            <input name="teacher" placeholder="{{ default_teacher }}" />
+            <div class="hint">إذا تركته فاضي → يثبت: {{ default_teacher }}</div>
+          </div>
+          <div>
+            <label>التخصص</label>
+            <input name="subject" placeholder="مثال: فيزياء" />
+          </div>
+
+          <div>
+            <label>المدرسة</label>
+            <input name="school" placeholder="{{ default_school }}" />
+            <div class="hint">إذا تركته فاضي → يثبت: {{ default_school }}</div>
+          </div>
+          <div>
+            <label>قائد المدرسة</label>
+            <input name="principal" placeholder="{{ default_principal }}" />
+            <div class="hint">إذا تركته فاضي → يثبت: {{ default_principal }}</div>
+          </div>
+
+          <div>
+            <label>اسم البرنامج/النشاط</label>
+            <input name="program_name" placeholder="نشاط/برنامج تعليمي" />
+          </div>
+          <div>
+            <label>التاريخ</label>
+            <input value="{{ today }}" disabled />
+            <div class="hint">يُضاف تلقائياً</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <label>وصف البرنامج (اختياري)</label>
+          <textarea name="program_desc" placeholder="إذا تركته فاضي → النظام يولد وصف عربي احترافي من الشاهد"></textarea>
+        </div>
+
+        <div class="row files">
           <div>
             <label>صورة الشاهد (1)</label>
-            <input type="file" name="image1" accept="image/*">
+            <input type="file" name="image1" accept="image/*" />
           </div>
           <div>
-            <label>صورة الشاهد (2) (اختياري)</label>
-            <input type="file" name="image2" accept="image/*">
+            <label>صورة الشاهد (2)</label>
+            <input type="file" name="image2" accept="image/*" />
           </div>
         </div>
-      </div>
 
-      <div class="section">
-        <div class="grid">
-          <div>
-            <label>اسم البرنامج/النشاط (اختياري)</label>
-            <input name="program_name" placeholder="نشاط/برنامج تعليمي">
+        <div class="row">
+          <button class="btn" type="submit">تحليل الشاهد وإصدار البطاقة</button>
+          <div class="loading" id="loading">
+            جاري التحليل... يرجى الانتظار
+            <div class="bar"><div></div></div>
           </div>
-          <div>
-            <label>وصف البرنامج (اختياري)</label>
-            <input name="program_desc" placeholder="اتركها فارغة ليتم توليد وصف تلقائي من الشاهد">
-          </div>
+          <div class="hint">ملاحظة: رفع صورتين قد يأخذ وقت أطول (OCR + GPT).</div>
         </div>
-        <p class="muted">ملاحظة: لو تركت الحقول فاضية، النظام بيحط قيم افتراضية ويكمل البطاقة بدون فراغات.</p>
-      </div>
-
-      <button class="btn" type="submit">تحليل الشاهد وإصدار البطاقة</button>
-    </form>
+      </form>
+    </div>
   </div>
+
+  <script>
+    const f = document.getElementById("f");
+    const loading = document.getElementById("loading");
+    f.addEventListener("submit", () => {
+      loading.style.display = "block";
+    });
+  </script>
 </body>
 </html>
