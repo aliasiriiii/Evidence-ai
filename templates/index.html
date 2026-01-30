@@ -3,90 +3,66 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>رفع الشاهد → بطاقة توثيق</title>
+  <title>بطاقة توثيق شاهد</title>
   <style>
-    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f6f7f8; margin:0}
-    .wrap{max-width:900px; margin:24px auto; padding:16px}
-    .card{background:#fff; border:1px solid #e6e6e6; border-radius:12px; padding:18px}
+    body{font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial; background:#f6f7f9; margin:0;}
+    .wrap{max-width:900px; margin:24px auto; background:#fff; padding:18px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,.06)}
     h1{margin:0 0 12px; font-size:20px}
-    .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
     label{font-size:13px; color:#333}
-    input, textarea{width:100%; padding:10px; border:1px solid #d9d9d9; border-radius:10px; font-size:14px}
-    textarea{min-height:80px; resize:vertical}
-    .row{margin-top:12px}
-    .btn{background:#0f7a3b; color:#fff; border:0; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600}
+    input, textarea{width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:14px}
+    textarea{min-height:90px}
+    .full{grid-column:1 / -1}
+    .btn{margin-top:14px; background:#1b7f5a; color:#fff; border:none; padding:12px 16px; border-radius:10px; font-size:15px; cursor:pointer}
     .hint{font-size:12px; color:#666; margin-top:8px}
-    @media (max-width:720px){ .grid{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
-      <h1>رفع الشاهد → إخراج بطاقة توثيق (PDF)</h1>
-
-      <form action="/generate" method="POST" enctype="multipart/form-data">
-        <div class="grid">
-          <div>
-            <label>اسم المعلم</label>
-            <input name="teacher" placeholder="مثال: علي عبدالله عسيري" />
-          </div>
-          <div>
-            <label>التخصص</label>
-            <input name="subject" placeholder="مثال: فيزياء" />
-          </div>
-
-          <div>
-            <label>المدرسة</label>
-            <input name="school" placeholder="مثال: ثانوية الظهران الحكومية" />
-          </div>
-          <div>
-            <label>قائد المدرسة</label>
-            <input name="principal" placeholder="مثال: راشد سعيد القحطاني" />
-          </div>
-
-          <div>
-            <label>التاريخ</label>
-            <input id="date" name="date" placeholder="YYYY/MM/DD" />
-          </div>
-          <div>
-            <label>اسم البرنامج/النشاط (اختياري)</label>
-            <input name="program_name" placeholder="مثال: التعلم بالمحاكاة وتطبيقات فيزياء" />
-          </div>
+    <h1>بطاقة توثيق منجز (برنامج)</h1>
+    <form action="/generate" method="POST" enctype="multipart/form-data">
+      <div class="grid">
+        <div>
+          <label>اسم المعلم</label>
+          <input name="teacher" placeholder="مثال: علي عبدالله عسيري" />
+        </div>
+        <div>
+          <label>التخصص</label>
+          <input name="subject" placeholder="مثال: فيزياء" />
         </div>
 
-        <div class="row">
-          <label>وصف البرنامج (اختياري — إذا تركته فاضي، GPT يكتبه من OCR)</label>
-          <textarea name="program_desc" placeholder="اكتب وصف مختصر... أو اتركه للنظام"></textarea>
+        <div>
+          <label>المدرسة</label>
+          <input name="school" placeholder="مثال: ثانوية الظهران الحكومية" />
+        </div>
+        <div>
+          <label>قائد المدرسة</label>
+          <input name="principal" placeholder="مثال: راشد سعيد القحطاني" />
         </div>
 
-        <div class="grid row">
-          <div>
-            <label>صورة الشاهد (1)</label>
-            <input type="file" name="image1" accept="image/*" />
-          </div>
-          <div>
-            <label>صورة الشاهد (2) (اختياري)</label>
-            <input type="file" name="image2" accept="image/*" />
-          </div>
+        <div class="full">
+          <label>اسم البرنامج / النشاط (اختياري)</label>
+          <input name="program_name" placeholder="اتركه فاضي لو تبي GPT يقترح" />
         </div>
 
-        <div class="row">
-          <button class="btn" type="submit">إنشاء البطاقة</button>
-          <div class="hint">ملاحظة: أفضل نتيجة OCR تكون إذا الصورة واضحة ومعدّلة الاستقامة.</div>
+        <div class="full">
+          <label>وصف البرنامج (اختياري)</label>
+          <textarea name="program_desc" placeholder="اتركه فاضي لو تبي GPT يكتب وصف رسمي من OCR"></textarea>
         </div>
-      </form>
-    </div>
+
+        <div>
+          <label>صورة (1)</label>
+          <input type="file" name="image1" accept="image/*" />
+        </div>
+        <div>
+          <label>صورة (2)</label>
+          <input type="file" name="image2" accept="image/*" />
+        </div>
+      </div>
+
+      <button class="btn" type="submit">إنشاء البطاقة</button>
+      <div class="hint">التاريخ داخل البطاقة يتعبّى تلقائيًا في صفحة النتيجة.</div>
+    </form>
   </div>
-
-  <script>
-    // تعبئة التاريخ تلقائياً بصيغة YYYY/MM/DD
-    (function(){
-      const d = new Date();
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth()+1).padStart(2,'0');
-      const dd = String(d.getDate()).padStart(2,'0');
-      document.getElementById('date').value = `${yyyy}/${mm}/${dd}`;
-    })();
-  </script>
 </body>
 </html>
