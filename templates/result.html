@@ -5,112 +5,122 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>بطاقة توثيق</title>
   <style>
-    body{font-family: "Tahoma", Arial, sans-serif; background:#f2f3f5; margin:0; padding:18px}
-    .page{max-width:980px; margin:0 auto}
-    .paper{background:#fff; border:1px solid #dcdcdc; border-radius:10px; padding:18px}
-    .topbar{background:#0f7a3b; color:#fff; padding:14px 16px; border-radius:8px; text-align:center; font-weight:700}
-    .subhead{margin:10px 0 14px; text-align:center; color:#333; font-weight:700}
+    body{font-family: Tahoma, Arial; background:#f3f4f6; margin:0; padding:18px}
+    .page{max-width:980px; margin:0 auto; background:#fff; border:1px solid #cfd6dc}
+    .topbar{background:#1f6b52; color:#fff; padding:18px; text-align:center}
+    .topbar .t1{font-size:16px; font-weight:bold}
+    .topbar .t2{font-size:13px; opacity:.95; margin-top:6px}
+    .title{padding:14px 18px; text-align:center; font-weight:bold}
     table{width:100%; border-collapse:collapse; font-size:14px}
-    td, th{border:1px solid #cfcfcf; padding:10px; vertical-align:middle}
-    th{background:#eef6ef; width:180px}
-    .section-title{background:#eef6ef; font-weight:700}
-    .images{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px}
-    .imgbox{border:1px solid #cfcfcf; height:260px; display:flex; align-items:center; justify-content:center; overflow:hidden}
-    .imgbox img{max-width:100%; max-height:100%; display:block}
-    .sign{display:flex; justify-content:space-between; margin-top:16px; color:#333}
-    .sign div{width:45%; min-height:60px}
-    .actions{display:flex; gap:10px; margin:14px 0}
-    .btn{border:0; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700}
-    .btn-primary{background:#0f7a3b; color:#fff}
-    .btn-ghost{background:#e9ecef; color:#222}
-    .muted{color:#666; font-size:12px}
-
-    /* OCR box (مخفي افتراضي) */
+    td, th{border:1px solid #cfd6dc; padding:10px; vertical-align:middle}
+    th{background:#eef5f2; text-align:center}
+    .label{background:#eef5f2; width:18%}
+    .val{width:32%}
+    .section{padding:16px 18px}
+    .imggrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .imgbox{border:1px solid #cfd6dc; min-height:220px; display:flex; align-items:center; justify-content:center}
+    .imgbox img{max-width:100%; max-height:360px; display:block}
+    .footer{display:flex; justify-content:space-between; padding:16px 18px; gap:10px}
+    .sig{width:48%; min-height:70px; border-top:1px solid #cfd6dc; padding-top:8px; font-size:13px; color:#333}
+    .btns{display:flex; justify-content:center; gap:10px; padding:14px}
+    .btn{border:0; padding:10px 14px; border-radius:10px; cursor:pointer}
+    .pdf{background:#1f6b52; color:#fff}
+    .back{background:#e5e7eb}
     details{margin-top:14px}
-    .ocrbox{border:1px dashed #b8b8b8; padding:12px; border-radius:10px; background:#fafafa; white-space:pre-wrap; font-size:13px; color:#333}
-    .err{color:#b00020; font-size:12px; margin-top:6px}
+    details summary{cursor:pointer; color:#1f6b52; font-weight:bold}
+    pre{white-space:pre-wrap; background:#fafafa; border:1px dashed #ddd; padding:10px; border-radius:10px; font-size:12px}
 
-    /* Print */
     @media print{
       body{background:#fff; padding:0}
-      .actions, details, .muted{display:none !important}
-      .paper{border:0; border-radius:0}
+      .btns, details{display:none !important;}
+      .page{border:none}
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <div class="actions">
-      <button class="btn btn-primary" onclick="window.print()">تحميل PDF</button>
-      <a class="btn btn-ghost" href="/">رجوع</a>
+
+  <div class="btns">
+    <button class="btn pdf" onclick="window.print()">تحميل PDF</button>
+    <button class="btn back" onclick="location.href='/'">رجوع</button>
+  </div>
+
+  <div class="page" id="card">
+    <div class="topbar">
+      <div class="t1">الإدارة العامة للتعليم بالمنطقة الشرقية</div>
+      <div class="t2">مكتب التعليم - وزارة التعليم</div>
     </div>
 
-    <div class="paper">
-      <div class="topbar">الإدارة العامة للتعليم بالمنطقة الشرقية — مكتب التعليم</div>
-      <div class="subhead">بطاقة توثيق منجز (برنامج)</div>
+    <div class="title">بطاقة توثيق منجز (برنامج)</div>
 
-      <table>
-        <tr>
-          <th>اسم المعلم</th>
-          <td>{{ teacher or "—" }}</td>
-          <th>التخصص</th>
-          <td>{{ subject or "—" }}</td>
-        </tr>
-        <tr>
-          <th>المدرسة</th>
-          <td>{{ school or "—" }}</td>
-          <th>قائد المدرسة</th>
-          <td>{{ principal or "—" }}</td>
-        </tr>
-        <tr>
-          <th>التاريخ</th>
-          <td>{{ date or "—" }}</td>
-          <th>اسم البرنامج/النشاط</th>
-          <td>{{ program_name or "—" }}</td>
-        </tr>
-        <tr>
-          <th class="section-title">وصف البرنامج</th>
-          <td colspan="3">{{ program_desc or "—" }}</td>
-        </tr>
-      </table>
+    <table>
+      <tr>
+        <td class="label">اسم المعلم</td>
+        <td class="val">{{ teacher }}</td>
+        <td class="label">التخصص</td>
+        <td class="val">{{ subject }}</td>
+      </tr>
+      <tr>
+        <td class="label">المدرسة</td>
+        <td class="val">{{ school }}</td>
+        <td class="label">قائد المدرسة</td>
+        <td class="val">{{ principal }}</td>
+      </tr>
+      <tr>
+        <td class="label">التاريخ</td>
+        <td colspan="3" id="today"></td>
+      </tr>
+      <tr>
+        <td class="label">اسم البرنامج / النشاط</td>
+        <td colspan="3">{{ program_name }}</td>
+      </tr>
+      <tr>
+        <td class="label">وصف البرنامج</td>
+        <td colspan="3">{{ program_desc }}</td>
+      </tr>
+    </table>
 
-      <div class="images">
+    <div class="section">
+      <div style="font-weight:bold; margin-bottom:10px">الصور</div>
+      <div class="imggrid">
         <div class="imgbox">
           {% if img1_url %}
-            <img src="{{ img1_url }}" alt="صورة (1)">
+            <img src="{{ img1_url }}" alt="صورة 1">
           {% else %}
-            <span class="muted">صورة (1)</span>
+            <div>صورة (1)</div>
           {% endif %}
         </div>
         <div class="imgbox">
           {% if img2_url %}
-            <img src="{{ img2_url }}" alt="صورة (2)">
+            <img src="{{ img2_url }}" alt="صورة 2">
           {% else %}
-            <span class="muted">صورة (2)</span>
+            <div>صورة (2)</div>
           {% endif %}
         </div>
       </div>
 
-      <div class="sign">
-        <div>توقيع قائد المدرسة: __________________</div>
-        <div style="text-align:left;">ختم المدرسة: __________________</div>
-      </div>
-
-      <div class="muted" style="margin-top:10px;">
-        {% if has_openai %}
-          تم توليد وصف البرنامج اعتماداً على OCR + GPT.
-        {% else %}
-          تم توليد وصف البرنامج اعتماداً على OCR فقط (بدون GPT).
-        {% endif %}
-      </div>
-
       <details>
-        <summary>عرض النص المستخرج (OCR)</summary>
-        <div class="ocrbox">{{ ocr_text or "لا يوجد نص مستخرج." }}</div>
-        {% if ocr1_err %}<div class="err">صورة (1): {{ ocr1_err }}</div>{% endif %}
-        {% if ocr2_err %}<div class="err">صورة (2): {{ ocr2_err }}</div>{% endif %}
+        <summary>عرض النص المستخرج (OCR) - مخفي افتراضيًا</summary>
+        {% if ocr1_err %}<div style="color:#b91c1c; margin-top:8px">{{ ocr1_err }}</div>{% endif %}
+        {% if ocr2_err %}<div style="color:#b91c1c; margin-top:8px">{{ ocr2_err }}</div>{% endif %}
+        <pre>{{ ocr1_text }}</pre>
+        <pre>{{ ocr2_text }}</pre>
       </details>
     </div>
+
+    <div class="footer">
+      <div class="sig">توقيع قائد المدرسة</div>
+      <div class="sig">ختم المدرسة</div>
+    </div>
   </div>
+
+  <script>
+    // تاريخ ذكي تلقائي: yyyy/mm/dd
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    document.getElementById('today').textContent = `${yyyy}/${mm}/${dd}`;
+  </script>
+
 </body>
 </html>
